@@ -1,0 +1,12 @@
+{
+  "hs256": {
+    "secret": "shared-cross-language-jwt-secret-32-bytes",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyLTEyMyIsInNjb3BlIjpbInJlYWQiLCJ3cml0ZSJdLCJpYXQiOjE3MTg0NTI4MDAsImV4cCI6MTcxODQ1MzcwMH0.5GylyblbV8LtVmJT_Mi9pYkRkJlcVu85FEG6x1FQ0ew",
+    "issuedAt": 1718452800,
+    "expiresAt": 1718453700,
+    "payload": {
+      "sub": "user-123",
+      "scope": ["read", "write"]
+    }
+  }
+}

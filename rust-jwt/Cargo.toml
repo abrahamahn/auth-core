@@ -1,0 +1,30 @@
+[package]
+name = "auth-jwt"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.94"
+authors = ["Abraham Joongwhan Ahn"]
+description = "HS256 JWT and key-rotation adapter for Auth Core"
+license = "MIT"
+repository = "https://github.com/abrahamahn/auth-core"
+homepage = "https://github.com/abrahamahn/auth-core"
+readme = "README.md"
+keywords = ["authentication", "jwt", "hs256", "security"]
+categories = ["authentication", "cryptography"]
+exclude = ["target/"]
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+base64 = "0.22"
+hmac = "0.12"
+serde_json = "1.0"
+sha2 = "0.10"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = "deny"
+pedantic = "deny"
