@@ -1,0 +1,34 @@
+[package]
+name = "auth-crypto"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.94"
+authors = ["Abraham Joongwhan Ahn"]
+description = "Opaque-token, secret-envelope, and device-fingerprint adapters for Auth Core"
+license = "MIT"
+repository = "https://github.com/abrahamahn/auth-core"
+homepage = "https://github.com/abrahamahn/auth-core"
+readme = "README.md"
+keywords = ["authentication", "tokens", "aes-gcm", "security"]
+categories = ["authentication", "cryptography"]
+exclude = ["target/"]
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+aes-gcm = "0.10"
+base64 = "0.22"
+getrandom = "0.3"
+scrypt = "0.11"
+sha2 = "0.10"
+
+[dev-dependencies]
+serde_json = "1.0"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = "deny"
+pedantic = "deny"

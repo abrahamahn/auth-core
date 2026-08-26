@@ -22,3 +22,5 @@ Versioning while allowing breaking API changes during the `0.x` series.
 - Expiring TypeScript and Rust replay guards for short-lived authentication challenges.
 - Independently packaged TypeScript and Rust TOTP providers with shared RFC 6238 vectors,
   enrollment URIs, clock-window verification, and recovery-code formatting.
+- Independently packaged Node.js and Rust cryptographic adapters for opaque credentials,
+  scrypt/AES-256-GCM protected-secret envelopes, and domain-separated device fingerprints.

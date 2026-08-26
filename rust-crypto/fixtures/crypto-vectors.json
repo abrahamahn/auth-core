@@ -1,0 +1,20 @@
+{
+  "tokenDigests": [
+    {
+      "input": "a@b.com:123456",
+      "digest": "1b4cc4464f6bcd5bc5d33c4d7ed0dd6b9149d238ec471f7d55eb2ae6a8c83e8a"
+    }
+  ],
+  "fingerprints": {
+    "deviceId": "device-id-123456",
+    "stable": "c2db2ae0f032be020c617099070c37700a31359d9e047c943fc7ed0b29ad66fa",
+    "identity": "ip:203.0.113.10",
+    "userAgent": "Chrome/120",
+    "contextual": "c9be6024d7528631cc0efedd1651dd474dfc12b50fab8d3fe58157e0d16ee049"
+  },
+  "secretEnvelope": {
+    "plaintext": "refresh-token-value",
+    "encryptionKey": "test-envelope-key-0123456789abcdef",
+    "envelope": "AAECAwQFBgcICQoLDA0ODw==:EBESExQVFhcYGRob:ie5aBtpfi4xNTaZnKckuzw==:VTOET6nZScQxZ1ij43/xPBPTMQ=="
+  }
+}

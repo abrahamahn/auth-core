@@ -13,6 +13,9 @@ configuration. Applications keep those policies and adapt their facts into reusa
 - [`rust/`](rust/) — Rust crate `auth-core`
 - [`typescript-totp/`](typescript-totp/) — npm package `@abrahamahn/auth-totp`
 - [`rust-totp/`](rust-totp/) — Rust crate `auth-totp`
+- [`typescript-crypto-node/`](typescript-crypto-node/) — npm package
+  `@abrahamahn/auth-crypto-node`
+- [`rust-crypto/`](rust-crypto/) — Rust crate `auth-crypto`
 - [`rust/fixtures/`](rust/fixtures/) — shared cross-language behavior vectors
 
 ## Cross-language contract
@@ -20,13 +23,16 @@ configuration. Applications keep those policies and adapt their facts into reusa
 Both core implementations expose the same deterministic decisions using language-idiomatic names
 and types. The shared vectors pin password outcomes, refresh rotation and reuse, session binding,
 credential epochs, session lifetime and eviction, idle handling, progressive delay, and account
-lockout. The TOTP packages share RFC 6238 vectors across TypeScript and Rust.
+lockout. The TOTP packages share RFC 6238 vectors across TypeScript and Rust. The crypto adapter
+packages share opaque-token digests, device fingerprints, and a byte-compatible authenticated
+secret-envelope format.
 
 ## Ganbate extraction boundary
 
 Ganbate delegates password assessment, session calculations, refresh-credential decisions, account
-lockout, RBAC inheritance, challenge replay protection, and TOTP provider behavior to this
-repository. Code intentionally left in Ganbate falls into these adapter or product categories:
+lockout, RBAC inheritance, challenge replay protection, TOTP provider behavior, opaque-token
+cryptography, protected-secret envelopes, and device fingerprints to this repository. Code
+intentionally left in Ganbate falls into these adapter or product categories:
 
 - Argon2, JWT, OAuth, and WebAuthn integrations not yet represented by a dedicated package;
 - HTTP routes, request/response schemas, cookies, and middleware;

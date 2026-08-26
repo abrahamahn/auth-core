@@ -18,6 +18,8 @@ jobs:
             artifact: auth-core-0.2.0
           - directory: rust-totp
             artifact: auth-totp-0.1.0
+          - directory: rust-crypto
+            artifact: auth-crypto-0.1.0
     defaults:
       run:
         working-directory: ${{ matrix.package.directory }}
@@ -42,6 +44,7 @@ jobs:
         directory:
           - typescript
           - typescript-totp
+          - typescript-crypto-node
     defaults:
       run:
         working-directory: ${{ matrix.directory }}
