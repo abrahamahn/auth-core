@@ -1,0 +1,27 @@
+[package]
+name = "auth-core"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.94"
+authors = ["Abraham Joongwhan Ahn"]
+description = "Deterministic, storage-neutral authentication security primitives"
+license = "MIT"
+repository = "https://github.com/abrahamahn/auth-core"
+homepage = "https://github.com/abrahamahn/auth-core"
+readme = "README.md"
+keywords = ["authentication", "password", "session", "security"]
+categories = ["authentication", "data-structures"]
+exclude = ["target/"]
+
+[lib]
+path = "src/lib.rs"
+
+[dev-dependencies]
+serde_json = "1.0"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = "deny"
+pedantic = "deny"

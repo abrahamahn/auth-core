@@ -1,0 +1,241 @@
+{
+  "passwords": [
+    {
+      "password": "short",
+      "userInputs": [],
+      "score": 0,
+      "valid": false,
+      "common": false
+    },
+    {
+      "password": "p4ssw0rd",
+      "userInputs": [],
+      "score": 0,
+      "valid": false,
+      "common": true
+    },
+    {
+      "password": "MyStr0ng!P@ssword2024",
+      "userInputs": [],
+      "score": 4,
+      "valid": true,
+      "common": false
+    }
+  ],
+  "refresh": [
+    {
+      "nowMs": 10000,
+      "expiresAtMs": 20000,
+      "rotatedAtMs": null,
+      "familyRevokedAtMs": null,
+      "gracePeriodMs": 1000,
+      "decision": "rotate"
+    },
+    {
+      "nowMs": 10000,
+      "expiresAtMs": 20000,
+      "rotatedAtMs": 9500,
+      "familyRevokedAtMs": null,
+      "gracePeriodMs": 1000,
+      "decision": "retry-current"
+    },
+    {
+      "nowMs": 10000,
+      "expiresAtMs": 20000,
+      "rotatedAtMs": 8000,
+      "familyRevokedAtMs": null,
+      "gracePeriodMs": 1000,
+      "decision": "revoke:credential-reuse"
+    },
+    {
+      "nowMs": 10500,
+      "expiresAtMs": 20000,
+      "rotatedAtMs": 9500,
+      "familyRevokedAtMs": null,
+      "gracePeriodMs": 1000,
+      "decision": "revoke:credential-reuse"
+    },
+    {
+      "nowMs": 10000,
+      "expiresAtMs": 10000,
+      "rotatedAtMs": null,
+      "familyRevokedAtMs": null,
+      "gracePeriodMs": 1000,
+      "decision": "reject:expired"
+    },
+    {
+      "nowMs": 10000,
+      "expiresAtMs": 20000,
+      "rotatedAtMs": null,
+      "familyRevokedAtMs": 9000,
+      "gracePeriodMs": 1000,
+      "decision": "revoke:family-revoked"
+    }
+  ],
+  "progressiveDelay": [
+    {
+      "failedAttempts": 4,
+      "mostRecentFailureAtMs": 9500,
+      "nowMs": 10000,
+      "baseDelayMs": 1000,
+      "maxDelayMs": 5000,
+      "expectedMs": 4500
+    },
+    {
+      "failedAttempts": 1,
+      "mostRecentFailureAtMs": 8000,
+      "nowMs": 10000,
+      "baseDelayMs": 1000,
+      "maxDelayMs": 5000,
+      "expectedMs": 0
+    },
+    {
+      "failedAttempts": 4,
+      "mostRecentFailureAtMs": 10500,
+      "nowMs": 10000,
+      "baseDelayMs": 1000,
+      "maxDelayMs": 5000,
+      "expectedMs": 5000
+    }
+  ],
+  "sessionIdle": [
+    {
+      "lastActiveAtMs": 7000,
+      "idleTimeoutMs": 3000,
+      "nowMs": 10000,
+      "idle": false,
+      "remainingMs": 0
+    },
+    {
+      "lastActiveAtMs": 6999,
+      "idleTimeoutMs": 3000,
+      "nowMs": 10000,
+      "idle": true,
+      "remainingMs": 0
+    },
+    {
+      "lastActiveAtMs": 8000,
+      "idleTimeoutMs": 3000,
+      "nowMs": 10000,
+      "idle": false,
+      "remainingMs": 1000
+    }
+  ],
+  "sessionBindings": [
+    {
+      "expected": null,
+      "presented": null,
+      "decision": "unbound"
+    },
+    {
+      "expected": "",
+      "presented": "browser-a",
+      "decision": "unbound"
+    },
+    {
+      "expected": "browser-a",
+      "presented": null,
+      "decision": "not-checked"
+    },
+    {
+      "expected": "browser-a",
+      "presented": "browser-a",
+      "decision": "match"
+    },
+    {
+      "expected": "browser-a",
+      "presented": "browser-b",
+      "decision": "mismatch"
+    }
+  ],
+  "credentialEpochs": [
+    {
+      "observed": 4,
+      "current": 4,
+      "matches": true
+    },
+    {
+      "observed": 4,
+      "current": 5,
+      "matches": false
+    }
+  ],
+  "sessionLifetimes": [
+    {
+      "remembered": false,
+      "defaultSpanMs": 43200000,
+      "rememberedSpanMs": 2592000000,
+      "maxIdleMs": 604800000,
+      "expectedSpanMs": 43200000,
+      "expectedIdleWindowMs": 43200000
+    },
+    {
+      "remembered": true,
+      "defaultSpanMs": 43200000,
+      "rememberedSpanMs": 2592000000,
+      "maxIdleMs": 604800000,
+      "expectedSpanMs": 2592000000,
+      "expectedIdleWindowMs": 604800000
+    }
+  ],
+  "sessionEviction": {
+    "maxSessions": 2,
+    "sessions": [
+      {
+        "id": "newest",
+        "createdAtMs": 30
+      },
+      {
+        "id": "oldest",
+        "createdAtMs": 10
+      },
+      {
+        "id": "middle",
+        "createdAtMs": 20
+      }
+    ],
+    "expectedIds": ["oldest"]
+  },
+  "lockouts": [
+    {
+      "nowMs": 10000,
+      "failedAttempts": 4,
+      "mostRecentFailureAtMs": 9000,
+      "maxAttempts": 5,
+      "lockoutDurationMs": 5000,
+      "isLocked": false,
+      "remainingMs": null,
+      "lockedUntilMs": null
+    },
+    {
+      "nowMs": 10000,
+      "failedAttempts": 5,
+      "mostRecentFailureAtMs": 9000,
+      "maxAttempts": 5,
+      "lockoutDurationMs": 5000,
+      "isLocked": true,
+      "remainingMs": 4000,
+      "lockedUntilMs": 14000
+    },
+    {
+      "nowMs": 10000,
+      "failedAttempts": 5,
+      "mostRecentFailureAtMs": null,
+      "maxAttempts": 5,
+      "lockoutDurationMs": 5000,
+      "isLocked": true,
+      "remainingMs": null,
+      "lockedUntilMs": null
+    },
+    {
+      "nowMs": 14000,
+      "failedAttempts": 5,
+      "mostRecentFailureAtMs": 9000,
+      "maxAttempts": 5,
+      "lockoutDurationMs": 5000,
+      "isLocked": false,
+      "remainingMs": null,
+      "lockedUntilMs": null
+    }
+  ]
+}
