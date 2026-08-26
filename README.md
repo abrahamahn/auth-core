@@ -16,6 +16,11 @@ configuration. Applications keep those policies and adapt their facts into reusa
 - [`typescript-crypto-node/`](typescript-crypto-node/) — npm package
   `@abrahamahn/auth-crypto-node`
 - [`rust-crypto/`](rust-crypto/) — Rust crate `auth-crypto`
+- [`typescript-password-argon2/`](typescript-password-argon2/) — npm package
+  `@abrahamahn/auth-password-argon2`
+- [`rust-password-argon2/`](rust-password-argon2/) — Rust crate `auth-password-argon2`
+- [`typescript-jwt-node/`](typescript-jwt-node/) — npm package `@abrahamahn/auth-jwt-node`
+- [`rust-jwt/`](rust-jwt/) — Rust crate `auth-jwt`
 - [`rust/fixtures/`](rust/fixtures/) — shared cross-language behavior vectors
 
 ## Cross-language contract
@@ -25,16 +30,18 @@ and types. The shared vectors pin password outcomes, refresh rotation and reuse,
 credential epochs, session lifetime and eviction, idle handling, progressive delay, and account
 lockout. The TOTP packages share RFC 6238 vectors across TypeScript and Rust. The crypto adapter
 packages share opaque-token digests, device fingerprints, and a byte-compatible authenticated
-secret-envelope format.
+secret-envelope format. The Argon2 packages share PHC verification vectors, and the JWT packages
+share signed HS256 token vectors.
 
 ## Ganbate extraction boundary
 
 Ganbate delegates password assessment, session calculations, refresh-credential decisions, account
 lockout, RBAC inheritance, challenge replay protection, TOTP provider behavior, opaque-token
-cryptography, protected-secret envelopes, and device fingerprints to this repository. Code
-intentionally left in Ganbate falls into these adapter or product categories:
+cryptography, protected-secret envelopes, device fingerprints, Argon2 password hashing, and HS256
+JWT rotation to this repository. Code intentionally left in Ganbate falls into these adapter or
+product categories:
 
-- Argon2, JWT, OAuth, and WebAuthn integrations not yet represented by a dedicated package;
+- OAuth and WebAuthn integrations not yet represented by a dedicated package;
 - HTTP routes, request/response schemas, cookies, and middleware;
 - database queries, transactions, repositories, audit persistence, and notifications;
 - Ganbate roles, permissions, tenancy, terms acceptance, eligibility, and user profiles.

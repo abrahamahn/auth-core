@@ -23,7 +23,8 @@ pnpm prepack
 pnpm pack --dry-run
 ```
 
-Run the same commands from `typescript-totp/` and `typescript-crypto-node/`.
+Run the same commands from `typescript-totp/`, `typescript-crypto-node/`,
+`typescript-password-argon2/`, and `typescript-jwt-node/`.
 
 From `rust/`:
 
@@ -35,4 +36,4 @@ cargo test --all-targets --locked
 cargo package --locked
 ```
 
-Run the same commands from `rust-totp/` and `rust-crypto/`.
+Run the same commands from `rust-totp/`, `rust-crypto/`, `rust-password-argon2/`, and `rust-jwt/`.

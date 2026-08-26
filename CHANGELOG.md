@@ -24,3 +24,7 @@ Versioning while allowing breaking API changes during the `0.x` series.
   enrollment URIs, clock-window verification, and recovery-code formatting.
 - Independently packaged Node.js and Rust cryptographic adapters for opaque credentials,
   scrypt/AES-256-GCM protected-secret envelopes, and domain-separated device fingerprints.
+- Independently packaged Node.js and Rust Argon2 password adapters with dummy-hash timing
+  resistance and shared PHC verification vectors.
+- Independently packaged Node.js and Rust HS256 JWT adapters with expiration validation,
+  current/previous-secret rotation, and shared signed-token vectors.
