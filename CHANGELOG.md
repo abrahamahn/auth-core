@@ -18,3 +18,7 @@ Versioning while allowing breaking API changes during the `0.x` series.
 - Session binding, lifetime, idle, state, and eviction decisions.
 - Account lockout and progressive-delay decisions.
 - Shared cross-language behavior vectors and package-artifact verification.
+- Generic TypeScript and Rust RBAC role inheritance and permission decisions.
+- Expiring TypeScript and Rust replay guards for short-lived authentication challenges.
+- Independently packaged TypeScript and Rust TOTP providers with shared RFC 6238 vectors,
+  enrollment URIs, clock-window verification, and recovery-code formatting.

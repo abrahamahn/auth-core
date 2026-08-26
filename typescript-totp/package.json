@@ -1,7 +1,7 @@
 {
-  "name": "@abrahamahn/auth-core",
-  "version": "0.2.0",
-  "description": "Storage-neutral authentication, credential, password, session, and revocation primitives",
+  "name": "@abrahamahn/auth-totp",
+  "version": "0.1.0",
+  "description": "Storage-neutral TOTP enrollment, verification, and recovery-code primitives",
   "type": "module",
   "sideEffects": false,
   "license": "MIT",
@@ -9,7 +9,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/abrahamahn/auth-core.git",
-    "directory": "typescript"
+    "directory": "typescript-totp"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -33,6 +33,9 @@
     "lint": "eslint src tests --max-warnings 0",
     "test": "vitest run",
     "prepack": "npm run build && npm run typecheck && npm run lint && npm test"
+  },
+  "dependencies": {
+    "otpauth": "^9.4.1"
   },
   "devDependencies": {
     "@types/node": "^25.0.9",

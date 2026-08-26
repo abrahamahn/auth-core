@@ -4,11 +4,15 @@
 //! and lockout decisions. Transport, cryptography, persistence, and product authorization stay
 //! outside the core.
 
+mod authorization;
+mod challenge;
 mod error;
 mod lockout;
 mod password;
 mod session;
 
+pub use authorization::{AuthorizationDecision, RbacError, RbacPolicy, RoleDefinition};
+pub use challenge::ExpiringReplayGuard;
 pub use error::{AuthError, AuthResult};
 pub use lockout::{
     AccountLockoutDecision, AccountLockoutFacts, AccountLockoutPolicy, evaluate_account_lockout,

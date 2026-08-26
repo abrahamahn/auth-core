@@ -1,20 +1,28 @@
 [package]
-name = "auth-core"
-version = "0.2.0"
+name = "auth-totp"
+version = "0.1.0"
 edition = "2024"
 rust-version = "1.94"
 authors = ["Abraham Joongwhan Ahn"]
-description = "Deterministic, storage-neutral authentication security primitives"
+description = "Storage-neutral TOTP enrollment, verification, and recovery-code primitives"
 license = "MIT"
 repository = "https://github.com/abrahamahn/auth-core"
 homepage = "https://github.com/abrahamahn/auth-core"
 readme = "README.md"
-keywords = ["authentication", "password", "session", "security"]
-categories = ["authentication", "data-structures"]
+keywords = ["authentication", "totp", "mfa", "2fa"]
+categories = ["authentication", "cryptography"]
 exclude = ["target/"]
 
 [lib]
 path = "src/lib.rs"
+
+[dependencies]
+data-encoding = "2.9"
+hmac = "0.12"
+percent-encoding = "2.3"
+sha1 = "0.10"
+sha2 = "0.10"
+subtle = "2.6"
 
 [dev-dependencies]
 serde_json = "1.0"

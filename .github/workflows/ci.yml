@@ -10,9 +10,17 @@ permissions:
 jobs:
   rust:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - directory: rust
+            artifact: auth-core-0.2.0
+          - directory: rust-totp
+            artifact: auth-totp-0.1.0
     defaults:
       run:
-        working-directory: rust
+        working-directory: ${{ matrix.package.directory }}
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
@@ -24,13 +32,19 @@ jobs:
       - run: cargo clippy --all-targets --locked -- -D warnings
       - run: cargo test --all-targets --locked
       - run: cargo package --locked
-      - run: cargo test --manifest-path target/package/auth-core-0.1.0/Cargo.toml --all-targets --locked
+      - run: cargo test --manifest-path target/package/${{ matrix.package.artifact }}/Cargo.toml --all-targets --locked
 
   typescript:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        directory:
+          - typescript
+          - typescript-totp
     defaults:
       run:
-        working-directory: typescript
+        working-directory: ${{ matrix.directory }}
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -40,7 +54,7 @@ jobs:
         with:
           node-version: 24.13.0
           cache: pnpm
-          cache-dependency-path: typescript/pnpm-lock.yaml
+          cache-dependency-path: ${{ matrix.directory }}/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: pnpm prepack
       - run: pnpm pack --dry-run

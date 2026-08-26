@@ -1,0 +1,28 @@
+{
+  "totp": [
+    {
+      "secretBase32": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+      "timestampMs": 59000,
+      "algorithm": "SHA1",
+      "digits": 8,
+      "periodSeconds": 30,
+      "code": "94287082"
+    },
+    {
+      "secretBase32": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+      "timestampMs": 1111111109000,
+      "algorithm": "SHA1",
+      "digits": 8,
+      "periodSeconds": 30,
+      "code": "07081804"
+    },
+    {
+      "secretBase32": "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+      "timestampMs": 20000000000000,
+      "algorithm": "SHA1",
+      "digits": 8,
+      "periodSeconds": 30,
+      "code": "65353130"
+    }
+  ]
+}

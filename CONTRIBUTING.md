@@ -1,8 +1,9 @@
 # Contributing
 
-Changes should preserve the storage-neutral boundary and matching TypeScript/Rust behavior. Do not
-add HTTP frameworks, databases, provider SDKs, cryptographic implementations, or product-specific
-authorization policy to this repository.
+Changes should preserve storage-neutral boundaries and matching TypeScript/Rust semantics.
+Product-specific authorization policy, HTTP frameworks, and application database schemas do not
+belong here. Provider SDKs and infrastructure dependencies belong in dedicated provider or adapter
+packages, never in the pure `auth-core` package.
 
 When behavior changes:
 
@@ -22,6 +23,8 @@ pnpm prepack
 pnpm pack --dry-run
 ```
 
+Run the same commands from `typescript-totp/`.
+
 From `rust/`:
 
 ```sh
@@ -31,3 +34,5 @@ cargo clippy --all-targets --locked -- -D warnings
 cargo test --all-targets --locked
 cargo package --locked
 ```
+
+Run the same commands from `rust-totp/`.

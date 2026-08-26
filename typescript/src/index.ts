@@ -53,3 +53,9 @@ export {
   type SessionBindingDecision,
   type SessionLifetimePolicy,
 } from './session.js';
+export {
+  RbacPolicy,
+  type AuthorizationDecision,
+  type RoleDefinition,
+} from './authorization.js';
+export { ExpiringReplayGuard, type ExpiringReplayGuardOptions } from './challenge.js';

@@ -1,6 +1,7 @@
 use auth_core::{
     AccountLockoutDecision, AccountLockoutFacts, AccountLockoutPolicy, AuthError,
-    DEFAULT_PASSWORD_CONFIG, PasswordScore, RefreshCredentialFacts, SessionBindingDecision,
+    AuthorizationDecision, DEFAULT_PASSWORD_CONFIG, ExpiringReplayGuard, PasswordScore, RbacError,
+    RbacPolicy, RefreshCredentialFacts, RoleDefinition, SessionBindingDecision,
     credential_epoch_matches, evaluate_account_lockout, evaluate_session_binding,
     has_repeated_pattern, is_lockout_threshold_reached, is_refresh_retry_eligible,
     progressive_delay_ms, select_sessions_for_eviction, validate_password,
@@ -98,4 +99,68 @@ fn lockout_boundaries_and_invalid_policies_are_explicit() {
             "max_delay_ms must be at least base_delay_ms"
         ))
     );
+}
+
+#[test]
+fn rbac_resolves_transitive_inheritance_and_denials() {
+    let policy = RbacPolicy::new([
+        RoleDefinition::new("viewer").grants(["document:read"]),
+        RoleDefinition::new("editor")
+            .grants(["document:write"])
+            .inherits(["viewer"]),
+        RoleDefinition::new("admin")
+            .grants(["users:manage"])
+            .inherits(["editor"]),
+    ])
+    .expect("valid role policy");
+
+    assert!(policy.has_role("admin", "viewer"));
+    assert!(policy.has_permission("admin", "document:read"));
+    assert!(policy.has_every_permission("editor", ["document:read", "document:write"]));
+    assert!(policy.has_any_permission("viewer", ["document:write", "document:read"]));
+    assert_eq!(
+        policy.evaluate("viewer", "document:write"),
+        AuthorizationDecision::MissingPermission
+    );
+    assert_eq!(
+        policy.evaluate("missing", "document:read"),
+        AuthorizationDecision::UnknownRole
+    );
+}
+
+#[test]
+fn rbac_rejects_invalid_role_graphs() {
+    assert_eq!(
+        RbacPolicy::new([RoleDefinition::new("member"), RoleDefinition::new("member")]),
+        Err(RbacError::DuplicateRole("member".to_owned()))
+    );
+    assert_eq!(
+        RbacPolicy::new([RoleDefinition::new("member").inherits(["missing"])]),
+        Err(RbacError::UnknownInheritedRole("missing".to_owned()))
+    );
+    assert_eq!(
+        RbacPolicy::new([
+            RoleDefinition::new("left").inherits(["right"]),
+            RoleDefinition::new("right").inherits(["left"]),
+        ]),
+        Err(RbacError::InheritanceCycle("left".to_owned()))
+    );
+}
+
+#[test]
+fn replay_guard_expires_and_clears_challenge_ids() {
+    let mut guard = ExpiringReplayGuard::new();
+    guard
+        .burn("challenge-a", 500, 1_000)
+        .expect("valid challenge deadline");
+    assert!(guard.is_burned(&"challenge-a", 1_499));
+    assert!(!guard.is_burned(&"challenge-b", 1_499));
+    assert!(!guard.is_burned(&"challenge-a", 1_500));
+    assert!(guard.is_empty(1_500));
+
+    guard
+        .burn("active", 100, 1_000)
+        .expect("valid challenge deadline");
+    guard.clear();
+    assert!(!guard.is_burned(&"active", 1_001));
 }
