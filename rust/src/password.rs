@@ -139,6 +139,17 @@ pub fn has_repeated_chars(password: &str, min_length: usize) -> bool {
     false
 }
 
+/// Returns true when the complete password is two or more copies of one shorter pattern.
+#[must_use]
+pub fn has_repeated_pattern(password: &str) -> bool {
+    let units = password.encode_utf16().collect::<Vec<_>>();
+    (1..=units.len() / 2).any(|pattern_length| {
+        units.len().is_multiple_of(pattern_length)
+            && (pattern_length..units.len())
+                .all(|index| units[index] == units[index % pattern_length])
+    })
+}
+
 #[must_use]
 pub fn has_sequential_chars(password: &str, min_length: usize) -> bool {
     if min_length == 0 {
@@ -258,22 +269,7 @@ pub fn estimate_crack_time(entropy: f64) -> (f64, String) {
 
 #[must_use]
 pub fn calculate_score(entropy: f64, penalties: PasswordPenalties) -> PasswordScore {
-    let mut adjusted_entropy = entropy;
-    if penalties.is_common {
-        adjusted_entropy *= 0.1;
-    }
-    if penalties.has_repeats {
-        adjusted_entropy *= 0.7;
-    }
-    if penalties.has_sequence {
-        adjusted_entropy *= 0.7;
-    }
-    if penalties.has_keyboard {
-        adjusted_entropy *= 0.5;
-    }
-    if penalties.contains_input {
-        adjusted_entropy *= 0.5;
-    }
+    let adjusted_entropy = effective_entropy(entropy, penalties);
     if adjusted_entropy < 20.0 {
         PasswordScore::VeryWeak
     } else if adjusted_entropy < 35.0 {
@@ -285,6 +281,26 @@ pub fn calculate_score(entropy: f64, penalties: PasswordPenalties) -> PasswordSc
     } else {
         PasswordScore::VeryStrong
     }
+}
+
+fn effective_entropy(entropy: f64, penalties: PasswordPenalties) -> f64 {
+    if !entropy.is_finite() || entropy <= 0.0 || penalties.is_common {
+        return 0.0;
+    }
+    let mut adjusted_entropy = entropy;
+    if penalties.has_repeats {
+        adjusted_entropy = (adjusted_entropy * 0.25).min(19.0);
+    }
+    if penalties.has_keyboard {
+        adjusted_entropy = (adjusted_entropy * 0.5).min(34.0);
+    }
+    if penalties.has_sequence {
+        adjusted_entropy = (adjusted_entropy * 0.7).min(49.0);
+    }
+    if penalties.contains_input {
+        adjusted_entropy = (adjusted_entropy * 0.5).min(34.0);
+    }
+    adjusted_entropy.max(0.0)
 }
 
 #[must_use]
@@ -355,7 +371,7 @@ pub fn estimate_password_strength(password: &str, user_inputs: &[&str]) -> Stren
     let entropy = calculate_entropy(password);
     let penalties = PasswordPenalties {
         is_common: is_common_password(password),
-        has_repeats: has_repeated_chars(password, 3),
+        has_repeats: has_repeated_chars(password, 3) || has_repeated_pattern(password),
         has_sequence: has_sequential_chars(password, 3),
         has_keyboard: has_keyboard_pattern(password),
         contains_input: contains_user_input(password, user_inputs),
@@ -364,7 +380,7 @@ pub fn estimate_password_strength(password: &str, user_inputs: &[&str]) -> Stren
     StrengthResult {
         score,
         feedback: generate_feedback(password, penalties),
-        crack_time_display: estimate_crack_time(entropy).1,
+        crack_time_display: estimate_crack_time(effective_entropy(entropy, penalties)).1,
         entropy,
     }
 }
@@ -402,6 +418,12 @@ pub fn validate_password(
         };
     }
     let result = estimate_password_strength(password, user_inputs);
+    if is_common_password(password) {
+        errors.push("Password appears on the built-in common-password blocklist".to_owned());
+    }
+    if has_repeated_chars(password, 3) || has_repeated_pattern(password) {
+        errors.push("Password cannot be a repeated character or pattern".to_owned());
+    }
     if result.score < config.min_score {
         errors.push(format!(
             "Password is too weak (score: {}/{} required)",

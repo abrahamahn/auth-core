@@ -12,6 +12,7 @@ export {
   getStrengthLabel,
   hasKeyboardPattern,
   hasRepeatedChars,
+  hasRepeatedPattern,
   hasSequentialChars,
   isCommonPassword,
   validatePassword,

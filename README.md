@@ -39,6 +39,10 @@ The TypeScript and Rust packages are currently `0.1.x`. Cross-language behavior 
 contract, but breaking API corrections may still occur before `1.0.0` and are recorded in
 [`CHANGELOG.md`](CHANGELOG.md).
 
+Password strength and crack-time estimates are advisory. The built-in common-password list rejects
+obvious online-guessing candidates, but a consuming verifier must also screen the complete proposed
+password against an application-maintained common or breached-password blocklist before hashing it.
+
 ## Development
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the required TypeScript, Rust, parity, and package

@@ -114,6 +114,22 @@ export function hasRepeatedChars(password: string, minLength = 3): boolean {
   return false;
 }
 
+/** Returns true when the complete password is two or more copies of one shorter pattern. */
+export function hasRepeatedPattern(password: string): boolean {
+  for (let patternLength = 1; patternLength <= Math.floor(password.length / 2); patternLength++) {
+    if (password.length % patternLength !== 0) continue;
+    let repeated = true;
+    for (let index = patternLength; index < password.length; index++) {
+      if (password.charCodeAt(index) !== password.charCodeAt(index % patternLength)) {
+        repeated = false;
+        break;
+      }
+    }
+    if (repeated) return true;
+  }
+  return false;
+}
+
 export function hasSequentialChars(password: string, minLength = 3): boolean {
   const lower = password.toLowerCase();
   for (let start = 0; start <= lower.length - minLength; start++) {
@@ -208,17 +224,23 @@ export function estimateCrackTime(entropy: number): {
 }
 
 export function calculateScore(entropy: number, penalties: PasswordPenalties): PasswordScore {
-  let adjustedEntropy = entropy;
-  if (penalties.isCommon) adjustedEntropy *= 0.1;
-  if (penalties.hasRepeats) adjustedEntropy *= 0.7;
-  if (penalties.hasSequence) adjustedEntropy *= 0.7;
-  if (penalties.hasKeyboard) adjustedEntropy *= 0.5;
-  if (penalties.containsInput) adjustedEntropy *= 0.5;
+  const adjustedEntropy = effectiveEntropy(entropy, penalties);
   if (adjustedEntropy < 20) return 0;
   if (adjustedEntropy < 35) return 1;
   if (adjustedEntropy < 50) return 2;
   if (adjustedEntropy < 65) return 3;
   return 4;
+}
+
+function effectiveEntropy(entropy: number, penalties: PasswordPenalties): number {
+  if (!Number.isFinite(entropy) || entropy <= 0 || penalties.isCommon) return 0;
+  let adjustedEntropy = entropy;
+  // Length must never let an obvious repeated or keyboard pattern outrank its weakness.
+  if (penalties.hasRepeats) adjustedEntropy = Math.min(adjustedEntropy * 0.25, 19);
+  if (penalties.hasKeyboard) adjustedEntropy = Math.min(adjustedEntropy * 0.5, 34);
+  if (penalties.hasSequence) adjustedEntropy = Math.min(adjustedEntropy * 0.7, 49);
+  if (penalties.containsInput) adjustedEntropy = Math.min(adjustedEntropy * 0.5, 34);
+  return Math.max(0, adjustedEntropy);
 }
 
 export function generateFeedback(password: string, penalties: PasswordPenalties): PasswordFeedback {
@@ -259,7 +281,7 @@ export function estimatePasswordStrength(
   const entropy = calculateEntropy(password);
   const penalties: PasswordPenalties = {
     isCommon: isCommonPassword(password),
-    hasRepeats: hasRepeatedChars(password),
+    hasRepeats: hasRepeatedChars(password) || hasRepeatedPattern(password),
     hasSequence: hasSequentialChars(password),
     hasKeyboard: hasKeyboardPattern(password),
     containsInput: containsUserInput(password, userInputs),
@@ -268,7 +290,7 @@ export function estimatePasswordStrength(
   return {
     score,
     feedback: generateFeedback(password, penalties),
-    crackTimeDisplay: estimateCrackTime(entropy).display,
+    crackTimeDisplay: estimateCrackTime(effectiveEntropy(entropy, penalties)).display,
     entropy,
   };
 }
@@ -295,6 +317,12 @@ export function validatePassword(
     };
   }
   const result = estimatePasswordStrength(password, userInputs);
+  if (isCommonPassword(password)) {
+    errors.push('Password appears on the built-in common-password blocklist');
+  }
+  if (hasRepeatedChars(password) || hasRepeatedPattern(password)) {
+    errors.push('Password cannot be a repeated character or pattern');
+  }
   if (result.score < config.minScore) {
     errors.push(
       `Password is too weak (score: ${String(result.score)}/${String(config.minScore)} required)`,

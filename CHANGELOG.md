@@ -5,6 +5,12 @@ Versioning while allowing breaking API changes during the `0.x` series.
 
 ## Unreleased
 
+### Fixed
+
+- Repeated full-password patterns can no longer gain an authoritative score from length alone.
+- Crack-time feedback now reflects pattern penalties instead of displaying raw character-set math.
+- Common and repeated password values produce explicit validation failures in both languages.
+
 ### Added
 
 - TypeScript and Rust password assessment primitives.

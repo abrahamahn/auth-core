@@ -18,6 +18,9 @@ session behavior without importing an authentication framework or application do
 HTTP, cookies, tokens, hashing algorithms, OAuth, WebAuthn transport, persistence, notifications,
 product roles, eligibility, profiles, tenancy, or resource authorization.
 
+Strength and crack-time estimates are advisory. Applications must supplement the built-in common
+password screening with their own current breached-password blocklist before accepting a password.
+
 ```bash
 pnpm build
 pnpm typecheck

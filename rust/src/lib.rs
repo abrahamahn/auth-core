@@ -19,8 +19,8 @@ pub use password::{
     PasswordConfig, PasswordFeedback, PasswordPenalties, PasswordScore, PasswordValidationResult,
     StrengthResult, calculate_entropy, calculate_score, contains_user_input, estimate_crack_time,
     estimate_password_strength, generate_feedback, get_charset_size, get_strength_label,
-    has_keyboard_pattern, has_repeated_chars, has_sequential_chars, is_common_password,
-    validate_password, validate_password_basic,
+    has_keyboard_pattern, has_repeated_chars, has_repeated_pattern, has_sequential_chars,
+    is_common_password, validate_password, validate_password_basic,
 };
 pub use session::{
     RefreshCredentialDecision, RefreshCredentialFacts, SessionBindingDecision,

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   estimatePasswordStrength,
+  hasRepeatedPattern,
   hasSequentialChars,
   isCommonPassword,
   validatePassword,
@@ -23,5 +24,19 @@ describe('password assessment', () => {
     const base = estimatePasswordStrength('johnsmith2024');
     const personalized = estimatePasswordStrength('johnsmith2024', ['john', 'smith']);
     expect(personalized.score).toBeLessThanOrEqual(base.score);
+  });
+
+  it('does not let length legitimize repeated weak patterns', () => {
+    for (const password of [
+      'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      'passwordpasswordpasswordpassword',
+      'qwertyqwertyqwertyqwerty',
+    ]) {
+      const result = validatePassword(password);
+      expect(hasRepeatedPattern(password)).toBe(true);
+      expect(result.isValid).toBe(false);
+      expect(result.score).toBeLessThan(3);
+      expect(result.crackTimeDisplay).not.toBe('centuries');
+    }
   });
 });

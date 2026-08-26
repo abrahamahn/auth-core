@@ -8,6 +8,9 @@ lockout, and progressive delay.
 It deliberately excludes HTTP, cookies, JWTs, password hashing, OAuth/WebAuthn providers,
 persistence, product roles, authorization policy, notifications, and device presentation.
 
+Strength and crack-time estimates are advisory. Applications must supplement the built-in common
+password screening with their own current breached-password blocklist before accepting a password.
+
 ```sh
 cargo build --all-targets
 cargo check --all-targets

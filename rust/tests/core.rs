@@ -1,9 +1,25 @@
 use auth_core::{
     AccountLockoutDecision, AccountLockoutFacts, AccountLockoutPolicy, AuthError,
-    RefreshCredentialFacts, SessionBindingDecision, credential_epoch_matches,
-    evaluate_account_lockout, evaluate_session_binding, is_lockout_threshold_reached,
-    is_refresh_retry_eligible, progressive_delay_ms, select_sessions_for_eviction,
+    DEFAULT_PASSWORD_CONFIG, PasswordScore, RefreshCredentialFacts, SessionBindingDecision,
+    credential_epoch_matches, evaluate_account_lockout, evaluate_session_binding,
+    has_repeated_pattern, is_lockout_threshold_reached, is_refresh_retry_eligible,
+    progressive_delay_ms, select_sessions_for_eviction, validate_password,
 };
+
+#[test]
+fn repeated_password_patterns_cannot_gain_strength_from_length() {
+    for password in [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "passwordpasswordpasswordpassword",
+        "qwertyqwertyqwertyqwerty",
+    ] {
+        let result = validate_password(password, &[], DEFAULT_PASSWORD_CONFIG);
+        assert!(has_repeated_pattern(password));
+        assert!(!result.is_valid);
+        assert!(result.score < PasswordScore::Strong);
+        assert_ne!(result.crack_time_display, "centuries");
+    }
+}
 
 #[test]
 fn refresh_retry_requires_the_same_credential_epoch() {
