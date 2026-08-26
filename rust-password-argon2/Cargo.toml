@@ -1,0 +1,31 @@
+[package]
+name = "auth-password-argon2"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.94"
+authors = ["Abraham Joongwhan Ahn"]
+description = "Argon2 password-hashing adapter for Auth Core"
+license = "MIT"
+repository = "https://github.com/abrahamahn/auth-core"
+homepage = "https://github.com/abrahamahn/auth-core"
+readme = "README.md"
+keywords = ["authentication", "password", "argon2", "security"]
+categories = ["authentication", "cryptography"]
+exclude = ["target/"]
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+argon2 = "0.5"
+getrandom = "0.3"
+
+[dev-dependencies]
+serde_json = "1.0"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = "deny"
+pedantic = "deny"
