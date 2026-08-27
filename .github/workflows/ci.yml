@@ -24,6 +24,8 @@ jobs:
             artifact: auth-password-argon2-0.1.0
           - directory: rust-jwt
             artifact: auth-jwt-0.1.0
+          - directory: rust-oauth
+            artifact: auth-oauth-0.1.0
     defaults:
       run:
         working-directory: ${{ matrix.package.directory }}
@@ -52,6 +54,7 @@ jobs:
           - typescript-password-argon2
           - typescript-jwt-node
           - typescript-http
+          - typescript-oauth-node
     defaults:
       run:
         working-directory: ${{ matrix.directory }}

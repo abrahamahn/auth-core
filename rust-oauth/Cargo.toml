@@ -1,0 +1,37 @@
+[package]
+name = "auth-oauth"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.94"
+authors = ["Abraham Joongwhan Ahn"]
+description = "Transport-neutral OAuth 2.0 and OpenID Connect adapters for Auth Core"
+license = "MIT"
+repository = "https://github.com/abrahamahn/auth-core"
+homepage = "https://github.com/abrahamahn/auth-core"
+readme = "README.md"
+keywords = ["authentication", "oauth2", "openid-connect", "pkce"]
+categories = ["authentication", "web-programming"]
+exclude = ["target/"]
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+base64 = "0.22"
+getrandom = "0.3"
+p256 = { version = "0.13", features = ["ecdsa", "pem", "pkcs8"] }
+rsa = "0.9"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sha2 = { version = "0.10", features = ["oid"] }
+url = "2.5"
+
+[dev-dependencies]
+rand = "0.8"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = "deny"
+pedantic = "deny"

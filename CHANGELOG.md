@@ -33,3 +33,6 @@ Versioning while allowing breaking API changes during the `0.x` series.
 - Storage, audit, notification, OAuth, and WebAuthn port contracts in the TypeScript core.
 - Cross-language HMAC signing, AES-GCM cookie protection, and constant-time double-submit
   validation for CSRF tokens, preserving Ganbate's existing wire formats.
+- Independently packaged Node.js and Rust OAuth adapters for Google, GitHub, Kakao, and Apple with
+  normalized token/identity contracts, credentialed refresh, PKCE, generic protected state, Apple
+  client assertions, and verified Apple identity tokens.
