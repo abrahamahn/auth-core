@@ -2,9 +2,9 @@
 
 `auth-core` is a modular authentication foundation. Its pure TypeScript and Rust core packages own
 password assessment, session and refresh-credential decisions, one-time credential consumption,
-account lockout, reusable RBAC mechanics, typed secret-safe audit events, and short-lived challenge
-replay protection. Separate provider packages own optional authentication mechanisms without
-pulling their dependencies into the pure core.
+account lockout, MFA assurance and step-up decisions, reusable RBAC mechanics, typed secret-safe
+audit events, and short-lived challenge replay protection. Separate provider packages own optional
+authentication mechanisms without pulling their dependencies into the pure core.
 
 It deliberately does not own product role names or permission assignments, HTTP route mounting,
 database schemas, eligibility, terms, notification wording, user profiles, or application
@@ -37,18 +37,20 @@ Both core implementations expose the same deterministic decisions using language
 and types. The shared vectors pin password outcomes, refresh rotation and reuse, session binding,
 credential epochs, session lifetime and eviction, idle handling, progressive delay, and account
 lockout, plus one-time credential acceptance and attempt exhaustion. The TOTP packages share RFC
-6238 vectors across TypeScript and Rust. The crypto adapter
-packages share opaque-token digests, device fingerprints, and a byte-compatible authenticated
-secret-envelope format. The Argon2 packages share PHC verification vectors, the JWT packages share
-signed HS256 token vectors, and the OAuth packages share normalized token, identity, PKCE, and
-protected-state contracts. The WebAuthn packages expose language-idiomatic, standard-compatible
-relying-party registration/authentication ceremonies and require single-use server-side state.
+6238 vectors across TypeScript and Rust. MFA assurance derivation and decoded challenge decisions
+also share cross-language vectors. The crypto adapter packages share opaque-token digests, device
+fingerprints, and a byte-compatible authenticated secret-envelope format. The Argon2 packages
+share PHC verification vectors, the JWT packages share signed HS256 token vectors, and the OAuth
+packages share normalized token, identity, PKCE, and protected-state contracts. The WebAuthn
+packages expose language-idiomatic, standard-compatible relying-party registration/authentication
+ceremonies and require single-use server-side state.
 
 ## Ganbate extraction boundary
 
 Ganbate delegates password assessment, session calculations, refresh-credential decisions, account
 lockout, one-time credential decisions, RBAC inheritance, challenge replay protection, typed audit
-event contracts, TOTP, OAuth, and WebAuthn provider behavior, opaque-token cryptography,
+event contracts, MFA assurance, factor selection, decoded challenge decisions, TOTP, OAuth, and
+WebAuthn provider behavior, opaque-token cryptography,
 protected-secret envelopes, CSRF token protection, Argon2 password hashing, HS256 JWT rotation,
 request metadata, and device labeling to this repository. Code intentionally left in Ganbate falls
 into these adapter or product categories:

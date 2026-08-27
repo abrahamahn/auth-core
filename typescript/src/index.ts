@@ -82,6 +82,27 @@ export {
   type OneTimeCredentialPolicy,
   type OneTimeCredentialRejectionReason,
 } from "./one-time-credential.js";
+export {
+  AUTHENTICATION_ASSURANCE_LEVELS,
+  AUTHENTICATION_FACTORS,
+  MFA_CHALLENGE_FACTORS,
+  deriveAuthenticationAssurance,
+  evaluateMfaChallenge,
+  evaluateStepUp,
+  selectMfaChallengeFactor,
+  type AuthenticationAssurance,
+  type AuthenticationAssuranceLevel,
+  type AuthenticationEvidence,
+  type AuthenticationFactor,
+  type MfaChallengeDecision,
+  type MfaChallengeFactor,
+  type MfaChallengeFacts,
+  type MfaChallengePolicy,
+  type MfaChallengeRejectionReason,
+  type StepUpChallengeReason,
+  type StepUpDecision,
+  type StepUpPolicy,
+} from "./mfa.js";
 export type {
   AuthAuditPort,
   AuthNotification,

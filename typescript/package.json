@@ -1,7 +1,7 @@
 {
   "name": "@abrahamahn/auth-core",
   "version": "0.2.0",
-  "description": "Storage-neutral authentication, credential, password, session, and revocation primitives",
+  "description": "Storage-neutral authentication, credential, MFA, password, session, and revocation primitives",
   "type": "module",
   "sideEffects": false,
   "license": "MIT",
@@ -27,7 +27,8 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "clean": "node --input-type=module --eval \"import { rmSync } from 'node:fs'; rmSync('dist', { recursive: true, force: true });\"",
+    "build": "pnpm clean && tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.test.json --noEmit",
     "type-check": "pnpm typecheck",
     "lint": "eslint src tests --max-warnings 0",

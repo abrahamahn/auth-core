@@ -14,6 +14,8 @@ session behavior without importing an authentication framework or application do
 - account lockout thresholds, unlock timing, and progressive delay.
 - one-time credential acceptance, expiry, consumption, and attempt-exhaustion decisions;
 - typed immutable authentication audit events with recursive secret-metadata rejection;
+- MFA factor selection, assurance derivation, freshness-aware step-up, and decoded challenge
+  decisions;
 - framework-neutral contracts for transaction, audit, notification, OAuth, and WebAuthn adapters.
 
 ## Does not own

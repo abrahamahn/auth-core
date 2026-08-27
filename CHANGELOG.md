@@ -41,3 +41,5 @@ Versioning while allowing breaking API changes during the `0.x` series.
 - Independently packaged Node.js and Rust WebAuthn relying-party adapters for passkey registration
   and authentication, strict origin/RP validation, single-use ceremony state, browser-response
   normalization, and persistence-neutral credential results.
+- Cross-language MFA factor selection, assurance derivation, freshness-aware step-up policy, and
+  decoded challenge claim decisions, while leaving enabled factors and product policy to callers.

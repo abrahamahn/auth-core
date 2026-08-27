@@ -9,6 +9,7 @@ mod authorization;
 mod challenge;
 mod error;
 mod lockout;
+mod mfa;
 mod one_time_credential;
 mod password;
 mod session;
@@ -24,6 +25,13 @@ pub use error::{AuthError, AuthResult};
 pub use lockout::{
     AccountLockoutDecision, AccountLockoutFacts, AccountLockoutPolicy, evaluate_account_lockout,
     is_lockout_threshold_reached, progressive_delay_ms,
+};
+pub use mfa::{
+    AuthenticationAssurance, AuthenticationAssuranceLevel, AuthenticationEvidence,
+    AuthenticationFactor, MfaChallengeDecision, MfaChallengeFactor, MfaChallengeFacts,
+    MfaChallengePolicy, MfaChallengeRejectionReason, StepUpChallengeReason, StepUpDecision,
+    StepUpPolicy, derive_authentication_assurance, evaluate_mfa_challenge, evaluate_step_up,
+    select_mfa_challenge_factor,
 };
 pub use one_time_credential::{
     OneTimeCredentialDecision, OneTimeCredentialFacts, OneTimeCredentialPolicy,

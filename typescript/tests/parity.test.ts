@@ -5,7 +5,9 @@ import { describe, expect, it } from 'vitest';
 import {
   classifyRefreshCredential,
   credentialEpochMatches,
+  deriveAuthenticationAssurance,
   evaluateAccountLockout,
+  evaluateMfaChallenge,
   evaluateOneTimeCredential,
   evaluateSessionBinding,
   isCommonPassword,
@@ -16,6 +18,9 @@ import {
   sessionIdleWindowMs,
   sessionSpanMs,
   validatePassword,
+  type AuthenticationFactor,
+  type MfaChallengeDecision,
+  type MfaChallengeFactor,
   type OneTimeCredentialDecision,
   type RefreshCredentialDecision,
 } from '../src/index.js';
@@ -99,6 +104,30 @@ interface ParityVectors {
     readonly consume: boolean;
     readonly resultFailedAttempts: number;
   }[];
+  readonly mfaAssurance: readonly {
+    readonly evidence: readonly {
+      readonly factor: AuthenticationFactor;
+      readonly verifiedAtMs: number;
+      readonly userVerified: boolean;
+    }[];
+    readonly level: string;
+    readonly authenticatedAtMs: number | null;
+    readonly factorCount: number;
+  }[];
+  readonly mfaChallenges: readonly {
+    readonly purpose: string | null;
+    readonly subject: string | null;
+    readonly factor: MfaChallengeFactor | null;
+    readonly credentialVersion: number | null;
+    readonly expiresAtMs: number | null;
+    readonly consumedAtMs: number | null;
+    readonly allowedPurposes: readonly string[];
+    readonly allowedFactors: readonly MfaChallengeFactor[];
+    readonly expectedSubject: string;
+    readonly currentCredentialVersion: number;
+    readonly nowMs: number;
+    readonly decision: string;
+  }[];
 }
 
 const vectors = JSON.parse(
@@ -112,6 +141,10 @@ function refreshDecisionLabel(decision: RefreshCredentialDecision): string {
 }
 
 function oneTimeDecisionLabel(decision: OneTimeCredentialDecision): string {
+  return decision.kind === 'accept' ? 'accept' : `reject:${decision.reason}`;
+}
+
+function mfaChallengeDecisionLabel(decision: MfaChallengeDecision): string {
   return decision.kind === 'accept' ? 'accept' : `reject:${decision.reason}`;
 }
 
@@ -187,6 +220,20 @@ describe('TypeScript/Rust auth-core parity vectors', () => {
       expect(oneTimeDecisionLabel(decision)).toBe(vector.decision);
       expect(decision.consume).toBe(vector.consume);
       expect(decision.failedAttempts).toBe(vector.resultFailedAttempts);
+    }
+  });
+
+  it('pins MFA assurance and challenge decisions', () => {
+    for (const vector of vectors.mfaAssurance) {
+      expect(deriveAuthenticationAssurance(vector.evidence)).toEqual({
+        level: vector.level,
+        authenticatedAtMs: vector.authenticatedAtMs,
+        factorCount: vector.factorCount,
+      });
+    }
+    for (const vector of vectors.mfaChallenges) {
+      const decision = evaluateMfaChallenge(vector, vector);
+      expect(mfaChallengeDecisionLabel(decision)).toBe(vector.decision);
     }
   });
 });

@@ -3,13 +3,16 @@ use std::collections::BTreeMap;
 use auth_core::{
     AccountLockoutDecision, AccountLockoutFacts, AccountLockoutPolicy, AuthAuditEvent,
     AuthAuditEventType, AuthAuditMetadataValue, AuthAuditOutcome, AuthAuditSeverity, AuthError,
-    AuthorizationDecision, DEFAULT_PASSWORD_CONFIG, ExpiringReplayGuard, OneTimeCredentialDecision,
-    OneTimeCredentialFacts, OneTimeCredentialPolicy, OneTimeCredentialRejectionReason,
-    PasswordScore, RbacError, RbacPolicy, RefreshCredentialFacts, RoleDefinition,
-    SessionBindingDecision, credential_epoch_matches, evaluate_account_lockout,
-    evaluate_one_time_credential, evaluate_session_binding, has_repeated_pattern,
+    AuthenticationAssuranceLevel, AuthenticationEvidence, AuthenticationFactor,
+    AuthorizationDecision, DEFAULT_PASSWORD_CONFIG, ExpiringReplayGuard, MfaChallengeDecision,
+    MfaChallengeFactor, MfaChallengeFacts, MfaChallengePolicy, MfaChallengeRejectionReason,
+    OneTimeCredentialDecision, OneTimeCredentialFacts, OneTimeCredentialPolicy,
+    OneTimeCredentialRejectionReason, PasswordScore, RbacError, RbacPolicy, RefreshCredentialFacts,
+    RoleDefinition, SessionBindingDecision, StepUpDecision, StepUpPolicy, credential_epoch_matches,
+    derive_authentication_assurance, evaluate_account_lockout, evaluate_mfa_challenge,
+    evaluate_one_time_credential, evaluate_session_binding, evaluate_step_up, has_repeated_pattern,
     is_lockout_threshold_reached, is_refresh_retry_eligible, progressive_delay_ms,
-    select_sessions_for_eviction, validate_password,
+    select_mfa_challenge_factor, select_sessions_for_eviction, validate_password,
 };
 
 #[test]
@@ -228,4 +231,92 @@ fn audit_metadata_rejects_secrets_recursively() {
         BTreeMap::from([("tokenCount".to_owned(), AuthAuditMetadataValue::Number(2.0))]),
     );
     assert!(valid.is_ok());
+}
+
+#[test]
+fn mfa_assurance_and_step_up_are_deterministic() {
+    let evidence = [
+        AuthenticationEvidence {
+            factor: AuthenticationFactor::Password,
+            verified_at_ms: 900,
+            user_verified: false,
+        },
+        AuthenticationEvidence {
+            factor: AuthenticationFactor::Totp,
+            verified_at_ms: 950,
+            user_verified: false,
+        },
+    ];
+    let assurance = derive_authentication_assurance(&evidence);
+    assert_eq!(assurance.level, AuthenticationAssuranceLevel::MultiFactor);
+    assert_eq!(assurance.authenticated_at_ms, Some(900));
+    assert_eq!(
+        evaluate_step_up(
+            &evidence,
+            1_000,
+            StepUpPolicy {
+                minimum_level: AuthenticationAssuranceLevel::MultiFactor,
+                max_age_ms: Some(100),
+                required_factors: &[AuthenticationFactor::Totp],
+            },
+        ),
+        Ok(StepUpDecision::Allow { assurance })
+    );
+
+    let phishing_resistant = derive_authentication_assurance(&[AuthenticationEvidence {
+        factor: AuthenticationFactor::Webauthn,
+        verified_at_ms: 1_000,
+        user_verified: true,
+    }]);
+    assert_eq!(
+        phishing_resistant.level,
+        AuthenticationAssuranceLevel::PhishingResistant
+    );
+}
+
+#[test]
+fn mfa_factor_selection_and_challenge_validation_are_policy_driven() {
+    assert_eq!(
+        select_mfa_challenge_factor(
+            &[MfaChallengeFactor::SmsOtp, MfaChallengeFactor::Totp],
+            &[
+                MfaChallengeFactor::Webauthn,
+                MfaChallengeFactor::Totp,
+                MfaChallengeFactor::SmsOtp,
+            ],
+        ),
+        Some(MfaChallengeFactor::Totp)
+    );
+
+    let facts = MfaChallengeFacts {
+        purpose: Some("login"),
+        subject: Some("user-1"),
+        factor: Some(MfaChallengeFactor::Totp),
+        credential_version: Some(4),
+        expires_at_ms: Some(2_000),
+        consumed_at_ms: None,
+    };
+    let policy = MfaChallengePolicy {
+        allowed_purposes: &["login"],
+        allowed_factors: &[MfaChallengeFactor::Totp],
+        expected_subject: Some("user-1"),
+        current_credential_version: Some(4),
+        now_ms: Some(1_999),
+    };
+    assert_eq!(
+        evaluate_mfa_challenge(facts, policy),
+        Ok(MfaChallengeDecision::Accept)
+    );
+    assert_eq!(
+        evaluate_mfa_challenge(
+            MfaChallengeFacts {
+                credential_version: Some(3),
+                ..facts
+            },
+            policy,
+        ),
+        Ok(MfaChallengeDecision::Reject(
+            MfaChallengeRejectionReason::CredentialVersionMismatch
+        ))
+    );
 }

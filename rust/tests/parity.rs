@@ -1,12 +1,15 @@
 use auth_core::{
-    AccountLockoutDecision, AccountLockoutFacts, AccountLockoutPolicy, DEFAULT_PASSWORD_CONFIG,
-    OneTimeCredentialDecision, OneTimeCredentialFacts, OneTimeCredentialPolicy,
-    OneTimeCredentialRejectionReason, RefreshCredentialDecision, RefreshCredentialFacts,
-    SessionBindingDecision, SessionLifetimePolicy, classify_refresh_credential,
-    credential_epoch_matches, evaluate_account_lockout, evaluate_one_time_credential,
-    evaluate_session_binding, is_common_password, is_session_idle, progressive_delay_ms,
-    select_sessions_for_eviction, session_idle_remaining_ms, session_idle_window_ms,
-    session_span_ms, validate_password,
+    AccountLockoutDecision, AccountLockoutFacts, AccountLockoutPolicy,
+    AuthenticationAssuranceLevel, AuthenticationEvidence, AuthenticationFactor,
+    DEFAULT_PASSWORD_CONFIG, MfaChallengeDecision, MfaChallengeFactor, MfaChallengeFacts,
+    MfaChallengePolicy, MfaChallengeRejectionReason, OneTimeCredentialDecision,
+    OneTimeCredentialFacts, OneTimeCredentialPolicy, OneTimeCredentialRejectionReason,
+    RefreshCredentialDecision, RefreshCredentialFacts, SessionBindingDecision,
+    SessionLifetimePolicy, classify_refresh_credential, credential_epoch_matches,
+    derive_authentication_assurance, evaluate_account_lockout, evaluate_mfa_challenge,
+    evaluate_one_time_credential, evaluate_session_binding, is_common_password, is_session_idle,
+    progressive_delay_ms, select_sessions_for_eviction, session_idle_remaining_ms,
+    session_idle_window_ms, session_span_ms, validate_password,
 };
 use serde_json::Value;
 
@@ -72,6 +75,63 @@ fn one_time_decision_label(decision: OneTimeCredentialDecision) -> &'static str 
             reason: OneTimeCredentialRejectionReason::AttemptsExhausted,
             ..
         } => "reject:attempts-exhausted",
+    }
+}
+
+fn authentication_factor(value: &str) -> AuthenticationFactor {
+    match value {
+        "password" => AuthenticationFactor::Password,
+        "magic-link" => AuthenticationFactor::MagicLink,
+        "email-otp" => AuthenticationFactor::EmailOtp,
+        "sms-otp" => AuthenticationFactor::SmsOtp,
+        "totp" => AuthenticationFactor::Totp,
+        "recovery-code" => AuthenticationFactor::RecoveryCode,
+        "oauth" => AuthenticationFactor::Oauth,
+        "webauthn" => AuthenticationFactor::Webauthn,
+        _ => panic!("unknown authentication factor"),
+    }
+}
+
+fn mfa_challenge_factor(value: &str) -> MfaChallengeFactor {
+    match value {
+        "email-otp" => MfaChallengeFactor::EmailOtp,
+        "sms-otp" => MfaChallengeFactor::SmsOtp,
+        "totp" => MfaChallengeFactor::Totp,
+        "recovery-code" => MfaChallengeFactor::RecoveryCode,
+        "webauthn" => MfaChallengeFactor::Webauthn,
+        _ => panic!("unknown MFA challenge factor"),
+    }
+}
+
+const fn assurance_level_label(level: AuthenticationAssuranceLevel) -> &'static str {
+    match level {
+        AuthenticationAssuranceLevel::Unauthenticated => "unauthenticated",
+        AuthenticationAssuranceLevel::SingleFactor => "single-factor",
+        AuthenticationAssuranceLevel::MultiFactor => "multi-factor",
+        AuthenticationAssuranceLevel::PhishingResistant => "phishing-resistant",
+    }
+}
+
+const fn mfa_challenge_decision_label(decision: MfaChallengeDecision) -> &'static str {
+    match decision {
+        MfaChallengeDecision::Accept => "accept",
+        MfaChallengeDecision::Reject(MfaChallengeRejectionReason::Malformed) => "reject:malformed",
+        MfaChallengeDecision::Reject(MfaChallengeRejectionReason::PurposeMismatch) => {
+            "reject:purpose-mismatch"
+        }
+        MfaChallengeDecision::Reject(MfaChallengeRejectionReason::FactorNotAllowed) => {
+            "reject:factor-not-allowed"
+        }
+        MfaChallengeDecision::Reject(MfaChallengeRejectionReason::SubjectMismatch) => {
+            "reject:subject-mismatch"
+        }
+        MfaChallengeDecision::Reject(MfaChallengeRejectionReason::CredentialVersionMismatch) => {
+            "reject:credential-version-mismatch"
+        }
+        MfaChallengeDecision::Reject(MfaChallengeRejectionReason::AlreadyConsumed) => {
+            "reject:already-consumed"
+        }
+        MfaChallengeDecision::Reject(MfaChallengeRejectionReason::Expired) => "reject:expired",
     }
 }
 
@@ -309,5 +369,78 @@ fn one_time_credential_vectors_match_typescript() {
         );
         assert_eq!(consume, vector["consume"].as_bool().expect("consume"));
         assert_eq!(failed_attempts, unsigned(vector, "resultFailedAttempts"));
+    }
+}
+
+#[test]
+fn mfa_vectors_match_typescript() {
+    let vectors = vectors();
+    for vector in vectors["mfaAssurance"]
+        .as_array()
+        .expect("MFA assurance vectors")
+    {
+        let evidence = vector["evidence"]
+            .as_array()
+            .expect("MFA evidence")
+            .iter()
+            .map(|item| AuthenticationEvidence {
+                factor: authentication_factor(item["factor"].as_str().expect("factor")),
+                verified_at_ms: number(item, "verifiedAtMs"),
+                user_verified: item["userVerified"].as_bool().expect("user verified"),
+            })
+            .collect::<Vec<_>>();
+        let assurance = derive_authentication_assurance(&evidence);
+        assert_eq!(
+            assurance_level_label(assurance.level),
+            vector["level"].as_str().expect("assurance level")
+        );
+        assert_eq!(
+            assurance.authenticated_at_ms,
+            optional_number(vector, "authenticatedAtMs")
+        );
+        assert_eq!(
+            u64::try_from(assurance.factor_count).expect("factor count fits u64"),
+            unsigned(vector, "factorCount")
+        );
+    }
+
+    for vector in vectors["mfaChallenges"]
+        .as_array()
+        .expect("MFA challenge vectors")
+    {
+        let allowed_purposes = vector["allowedPurposes"]
+            .as_array()
+            .expect("allowed purposes")
+            .iter()
+            .map(|purpose| purpose.as_str().expect("purpose"))
+            .collect::<Vec<_>>();
+        let allowed_factors = vector["allowedFactors"]
+            .as_array()
+            .expect("allowed factors")
+            .iter()
+            .map(|factor| mfa_challenge_factor(factor.as_str().expect("factor")))
+            .collect::<Vec<_>>();
+        let decision = evaluate_mfa_challenge(
+            MfaChallengeFacts {
+                purpose: optional_string(vector, "purpose"),
+                subject: optional_string(vector, "subject"),
+                factor: optional_string(vector, "factor").map(mfa_challenge_factor),
+                credential_version: vector["credentialVersion"].as_u64(),
+                expires_at_ms: optional_number(vector, "expiresAtMs"),
+                consumed_at_ms: optional_number(vector, "consumedAtMs"),
+            },
+            MfaChallengePolicy {
+                allowed_purposes: &allowed_purposes,
+                allowed_factors: &allowed_factors,
+                expected_subject: optional_string(vector, "expectedSubject"),
+                current_credential_version: vector["currentCredentialVersion"].as_u64(),
+                now_ms: optional_number(vector, "nowMs"),
+            },
+        )
+        .expect("valid MFA challenge vector");
+        assert_eq!(
+            mfa_challenge_decision_label(decision),
+            vector["decision"].as_str().expect("MFA challenge decision")
+        );
     }
 }

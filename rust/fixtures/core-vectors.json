@@ -325,5 +325,120 @@
       "consume": true,
       "resultFailedAttempts": 3
     }
+  ],
+  "mfaAssurance": [
+    {
+      "evidence": [],
+      "level": "unauthenticated",
+      "authenticatedAtMs": null,
+      "factorCount": 0
+    },
+    {
+      "evidence": [{ "factor": "password", "verifiedAtMs": 1000, "userVerified": false }],
+      "level": "single-factor",
+      "authenticatedAtMs": 1000,
+      "factorCount": 1
+    },
+    {
+      "evidence": [
+        { "factor": "password", "verifiedAtMs": 1000, "userVerified": false },
+        { "factor": "totp", "verifiedAtMs": 1100, "userVerified": false }
+      ],
+      "level": "multi-factor",
+      "authenticatedAtMs": 1000,
+      "factorCount": 2
+    },
+    {
+      "evidence": [
+        { "factor": "webauthn", "verifiedAtMs": 1200, "userVerified": true },
+        { "factor": "webauthn", "verifiedAtMs": 1300, "userVerified": false }
+      ],
+      "level": "phishing-resistant",
+      "authenticatedAtMs": 1200,
+      "factorCount": 1
+    },
+    {
+      "evidence": [
+        { "factor": "password", "verifiedAtMs": 100, "userVerified": false },
+        { "factor": "password", "verifiedAtMs": 900, "userVerified": false },
+        { "factor": "totp", "verifiedAtMs": 950, "userVerified": false },
+        { "factor": "sms-otp", "verifiedAtMs": 10, "userVerified": false }
+      ],
+      "level": "multi-factor",
+      "authenticatedAtMs": 900,
+      "factorCount": 3
+    }
+  ],
+  "mfaChallenges": [
+    {
+      "purpose": "login",
+      "subject": "user-1",
+      "factor": "totp",
+      "credentialVersion": 4,
+      "expiresAtMs": 2000,
+      "consumedAtMs": null,
+      "allowedPurposes": ["login"],
+      "allowedFactors": ["totp"],
+      "expectedSubject": "user-1",
+      "currentCredentialVersion": 4,
+      "nowMs": 1999,
+      "decision": "accept"
+    },
+    {
+      "purpose": "other",
+      "subject": "user-1",
+      "factor": "totp",
+      "credentialVersion": 4,
+      "expiresAtMs": 2000,
+      "consumedAtMs": null,
+      "allowedPurposes": ["login"],
+      "allowedFactors": ["totp"],
+      "expectedSubject": "user-1",
+      "currentCredentialVersion": 4,
+      "nowMs": 1999,
+      "decision": "reject:purpose-mismatch"
+    },
+    {
+      "purpose": "login",
+      "subject": "user-1",
+      "factor": "sms-otp",
+      "credentialVersion": 4,
+      "expiresAtMs": 2000,
+      "consumedAtMs": null,
+      "allowedPurposes": ["login"],
+      "allowedFactors": ["totp"],
+      "expectedSubject": "user-1",
+      "currentCredentialVersion": 4,
+      "nowMs": 1999,
+      "decision": "reject:factor-not-allowed"
+    },
+    {
+      "purpose": "login",
+      "subject": "user-1",
+      "factor": "totp",
+      "credentialVersion": 3,
+      "expiresAtMs": 2000,
+      "consumedAtMs": null,
+      "allowedPurposes": ["login"],
+      "allowedFactors": ["totp"],
+      "expectedSubject": "user-1",
+      "currentCredentialVersion": 4,
+      "nowMs": 1999,
+      "decision": "reject:credential-version-mismatch"
+    },
+    {
+      "purpose": "login",
+      "subject": "user-1",
+      "factor": "totp",
+      "credentialVersion": 4,
+      "expiresAtMs": 1999,
+      "consumedAtMs": null,
+      "allowedPurposes": ["login"],
+      "allowedFactors": ["totp"],
+      "expectedSubject": "user-1",
+      "currentCredentialVersion": 4,
+      "nowMs": 1999,
+      "decision": "reject:expired"
+    }
   ]
 }
