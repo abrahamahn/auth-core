@@ -1,8 +1,8 @@
-import { randomInt, randomUUID } from 'node:crypto';
+import { randomInt, randomUUID } from "node:crypto";
 
-import argon2 from 'argon2';
+import argon2 from "argon2";
 
-import type { Options } from 'argon2';
+import type { HashOptions } from "argon2";
 
 export type Argon2Variant = 0 | 1 | 2;
 
@@ -30,10 +30,10 @@ function requirePositiveInteger(value: number, name: string): void {
   }
 }
 
-function toArgon2Options(config: Argon2Config): Options {
-  requirePositiveInteger(config.memoryCost, 'memoryCost');
-  requirePositiveInteger(config.timeCost, 'timeCost');
-  requirePositiveInteger(config.parallelism, 'parallelism');
+function toArgon2Options(config: Argon2Config): HashOptions {
+  requirePositiveInteger(config.memoryCost, "memoryCost");
+  requirePositiveInteger(config.timeCost, "timeCost");
+  requirePositiveInteger(config.parallelism, "parallelism");
 
   return {
     type: config.type,
@@ -52,7 +52,10 @@ export async function hashPassword(
 }
 
 /** Verify a password without leaking malformed-hash errors to callers. */
-export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+export async function verifyPassword(
+  password: string,
+  hash: string,
+): Promise<boolean> {
   try {
     return await argon2.verify(hash, password);
   } catch {
@@ -65,7 +68,7 @@ export function needsRehash(
   hash: string,
   config: Argon2Config = DEFAULT_ARGON2_CONFIG,
 ): boolean {
-  if (!hash.startsWith('$argon2')) return true;
+  if (!hash.startsWith("$argon2")) return true;
 
   try {
     return argon2.needsRehash(hash, toArgon2Options(config));
@@ -93,7 +96,7 @@ export class DummyHashPool {
   constructor(options: DummyHashPoolOptions = {}) {
     this.#config = options.config ?? DEFAULT_ARGON2_CONFIG;
     this.#size = options.size ?? 10;
-    requirePositiveInteger(this.#size, 'size');
+    requirePositiveInteger(this.#size, "size");
     toArgon2Options(this.#config);
   }
 
@@ -135,12 +138,18 @@ export class DummyHashPool {
       if (selected !== undefined) return selected;
     }
 
-    return hashPassword(`auth-core-fallback-${randomUUID()}-${randomUUID()}`, this.#config);
+    return hashPassword(
+      `auth-core-fallback-${randomUUID()}-${randomUUID()}`,
+      this.#config,
+    );
   }
 
   /** Always perform Argon2 verification, even when no account hash exists. */
-  async verify(password: string, hash: string | null | undefined): Promise<boolean> {
-    const hasHash = hash !== undefined && hash !== null && hash !== '';
+  async verify(
+    password: string,
+    hash: string | null | undefined,
+  ): Promise<boolean> {
+    const hasHash = hash !== undefined && hash !== null && hash !== "";
     const hashToVerify = hasHash ? hash : await this.#getHash();
     const valid = await verifyPassword(password, hashToVerify);
     return hasHash && valid;
@@ -153,7 +162,10 @@ let defaultDummyHashPool = new DummyHashPool();
 export async function initDummyHashPool(
   config: Argon2Config = DEFAULT_ARGON2_CONFIG,
 ): Promise<void> {
-  if (config !== DEFAULT_ARGON2_CONFIG && !defaultDummyHashPool.isInitialized()) {
+  if (
+    config !== DEFAULT_ARGON2_CONFIG &&
+    !defaultDummyHashPool.isInitialized()
+  ) {
     defaultDummyHashPool = new DummyHashPool({ config });
   }
   await defaultDummyHashPool.initialize();

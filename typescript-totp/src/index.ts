@@ -1,6 +1,6 @@
-import { Secret, TOTP } from 'otpauth';
+import { Secret, TOTP } from "otpauth";
 
-export type TotpAlgorithm = 'SHA1' | 'SHA256' | 'SHA512';
+export type TotpAlgorithm = "SHA1" | "SHA256" | "SHA512";
 
 export interface TotpConfig {
   readonly algorithm: TotpAlgorithm;
@@ -9,7 +9,7 @@ export interface TotpConfig {
 }
 
 export const DEFAULT_TOTP_CONFIG = {
-  algorithm: 'SHA1',
+  algorithm: "SHA1",
   digits: 6,
   periodSeconds: 30,
 } as const satisfies TotpConfig;
@@ -42,16 +42,28 @@ export type RandomBytes = (length: number) => Uint8Array;
 
 function resolveConfig(config: Partial<TotpConfig> = {}): TotpConfig {
   const resolved: TotpConfig = { ...DEFAULT_TOTP_CONFIG, ...config };
-  if (!Number.isSafeInteger(resolved.digits) || resolved.digits < 6 || resolved.digits > 8) {
-    throw new RangeError('TOTP digits must be an integer from 6 through 8');
+  if (
+    !Number.isSafeInteger(resolved.digits) ||
+    resolved.digits < 6 ||
+    resolved.digits > 8
+  ) {
+    throw new RangeError("TOTP digits must be an integer from 6 through 8");
   }
-  if (!Number.isSafeInteger(resolved.periodSeconds) || resolved.periodSeconds <= 0) {
-    throw new RangeError('TOTP periodSeconds must be a positive integer');
+  if (
+    !Number.isSafeInteger(resolved.periodSeconds) ||
+    resolved.periodSeconds <= 0
+  ) {
+    throw new RangeError("TOTP periodSeconds must be a positive integer");
   }
   return resolved;
 }
 
-function createTotp(secretBase32: string, config: TotpConfig, issuer?: string, label?: string): TOTP {
+function createTotp(
+  secretBase32: string,
+  config: TotpConfig,
+  issuer?: string,
+  label?: string,
+): TOTP {
   return new TOTP({
     ...(issuer === undefined ? {} : { issuer }),
     ...(label === undefined ? {} : { label }),
@@ -63,11 +75,13 @@ function createTotp(secretBase32: string, config: TotpConfig, issuer?: string, l
 }
 
 export function createTotpSetup(options: TotpSetupOptions): TotpSetup {
-  if (options.issuer.trim() === '') throw new Error('TOTP issuer must not be empty');
-  if (options.label.trim() === '') throw new Error('TOTP label must not be empty');
+  if (options.issuer.trim() === "")
+    throw new Error("TOTP issuer must not be empty");
+  if (options.label.trim() === "")
+    throw new Error("TOTP label must not be empty");
   const secretBytes = options.secretBytes ?? 20;
   if (!Number.isSafeInteger(secretBytes) || secretBytes < 16) {
-    throw new RangeError('TOTP secretBytes must be an integer of at least 16');
+    throw new RangeError("TOTP secretBytes must be an integer of at least 16");
   }
   const config = resolveConfig(options.config);
   const secret = new Secret({ size: secretBytes });
@@ -81,9 +95,14 @@ export function createTotpUri(
   label: string,
   config: Partial<TotpConfig> = {},
 ): string {
-  if (issuer.trim() === '') throw new Error('TOTP issuer must not be empty');
-  if (label.trim() === '') throw new Error('TOTP label must not be empty');
-  return createTotp(secretBase32, resolveConfig(config), issuer, label).toString();
+  if (issuer.trim() === "") throw new Error("TOTP issuer must not be empty");
+  if (label.trim() === "") throw new Error("TOTP label must not be empty");
+  return createTotp(
+    secretBase32,
+    resolveConfig(config),
+    issuer,
+    label,
+  ).toString();
 }
 
 export function generateTotpCode(
@@ -92,9 +111,13 @@ export function generateTotpCode(
   config: Partial<TotpConfig> = {},
 ): string {
   if (!Number.isFinite(timestampMs) || timestampMs < 0) {
-    throw new RangeError('TOTP timestampMs must be a non-negative finite number');
+    throw new RangeError(
+      "TOTP timestampMs must be a non-negative finite number",
+    );
   }
-  return createTotp(secretBase32, resolveConfig(config)).generate({ timestamp: timestampMs });
+  return createTotp(secretBase32, resolveConfig(config)).generate({
+    timestamp: timestampMs,
+  });
 }
 
 export function verifyTotpCode(
@@ -104,33 +127,44 @@ export function verifyTotpCode(
 ): boolean {
   const window = options.window ?? 0;
   if (!Number.isSafeInteger(window) || window < 0) {
-    throw new RangeError('TOTP window must be a non-negative integer');
+    throw new RangeError("TOTP window must be a non-negative integer");
   }
   const timestampMs = options.timestampMs ?? Date.now();
   if (!Number.isFinite(timestampMs) || timestampMs < 0) {
-    throw new RangeError('TOTP timestampMs must be a non-negative finite number');
+    throw new RangeError(
+      "TOTP timestampMs must be a non-negative finite number",
+    );
   }
   const config = resolveConfig(options.config);
   if (!new RegExp(`^\\d{${String(config.digits)}}$`).test(code)) return false;
   return (
-    createTotp(secretBase32, config).validate({ token: code, window, timestamp: timestampMs }) !==
-    null
+    createTotp(secretBase32, config).validate({
+      token: code,
+      window,
+      timestamp: timestampMs,
+    }) !== null
   );
 }
 
-export function formatBackupCode(randomBytes: Uint8Array, groupSize = 4): string {
-  if (randomBytes.length === 0) throw new RangeError('backup-code entropy must not be empty');
+export function formatBackupCode(
+  randomBytes: Uint8Array,
+  groupSize = 4,
+): string {
+  if (randomBytes.length === 0)
+    throw new RangeError("backup-code entropy must not be empty");
   if (!Number.isSafeInteger(groupSize) || groupSize <= 0) {
-    throw new RangeError('backup-code groupSize must be a positive integer');
+    throw new RangeError("backup-code groupSize must be a positive integer");
   }
-  const encoded = Array.from(randomBytes, (byte) => byte.toString(16).padStart(2, '0'))
-    .join('')
+  const encoded = Array.from(randomBytes, (byte) =>
+    byte.toString(16).padStart(2, "0"),
+  )
+    .join("")
     .toUpperCase();
   const groups: string[] = [];
   for (let offset = 0; offset < encoded.length; offset += groupSize) {
     groups.push(encoded.slice(offset, offset + groupSize));
   }
-  return groups.join('-');
+  return groups.join("-");
 }
 
 export function createBackupCodes(
@@ -141,15 +175,15 @@ export function createBackupCodes(
   const bytesPerCode = options.bytesPerCode ?? 4;
   const groupSize = options.groupSize ?? 4;
   if (!Number.isSafeInteger(count) || count <= 0) {
-    throw new RangeError('backup-code count must be a positive integer');
+    throw new RangeError("backup-code count must be a positive integer");
   }
   if (!Number.isSafeInteger(bytesPerCode) || bytesPerCode <= 0) {
-    throw new RangeError('backup-code bytesPerCode must be a positive integer');
+    throw new RangeError("backup-code bytesPerCode must be a positive integer");
   }
   return Array.from({ length: count }, () => {
     const entropy = randomBytes(bytesPerCode);
     if (entropy.length !== bytesPerCode) {
-      throw new Error('randomBytes returned an unexpected number of bytes');
+      throw new Error("randomBytes returned an unexpected number of bytes");
     }
     return formatBackupCode(entropy, groupSize);
   });

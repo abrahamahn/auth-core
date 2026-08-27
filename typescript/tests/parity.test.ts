@@ -1,6 +1,6 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync } from "node:fs";
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from "vitest";
 
 import {
   classifyRefreshCredential,
@@ -23,7 +23,7 @@ import {
   type MfaChallengeFactor,
   type OneTimeCredentialDecision,
   type RefreshCredentialDecision,
-} from '../src/index.js';
+} from "../src/index.js";
 
 interface ParityVectors {
   readonly passwords: readonly {
@@ -131,25 +131,28 @@ interface ParityVectors {
 }
 
 const vectors = JSON.parse(
-  readFileSync(new URL('../../rust/fixtures/core-vectors.json', import.meta.url), 'utf8'),
+  readFileSync(
+    new URL("../../rust/fixtures/core-vectors.json", import.meta.url),
+    "utf8",
+  ),
 ) as ParityVectors;
 
 function refreshDecisionLabel(decision: RefreshCredentialDecision): string {
-  if (decision.kind === 'revoke-family') return `revoke:${decision.reason}`;
-  if (decision.kind === 'reject') return `reject:${decision.reason}`;
+  if (decision.kind === "revoke-family") return `revoke:${decision.reason}`;
+  if (decision.kind === "reject") return `reject:${decision.reason}`;
   return decision.kind;
 }
 
 function oneTimeDecisionLabel(decision: OneTimeCredentialDecision): string {
-  return decision.kind === 'accept' ? 'accept' : `reject:${decision.reason}`;
+  return decision.kind === "accept" ? "accept" : `reject:${decision.reason}`;
 }
 
 function mfaChallengeDecisionLabel(decision: MfaChallengeDecision): string {
-  return decision.kind === 'accept' ? 'accept' : `reject:${decision.reason}`;
+  return decision.kind === "accept" ? "accept" : `reject:${decision.reason}`;
 }
 
-describe('TypeScript/Rust auth-core parity vectors', () => {
-  it('pins password outcomes', () => {
+describe("TypeScript/Rust auth-core parity vectors", () => {
+  it("pins password outcomes", () => {
     for (const vector of vectors.passwords) {
       const result = validatePassword(vector.password, vector.userInputs);
       expect(result.score).toBe(vector.score);
@@ -158,9 +161,11 @@ describe('TypeScript/Rust auth-core parity vectors', () => {
     }
   });
 
-  it('pins refresh, delay, and idle decisions', () => {
+  it("pins refresh, delay, and idle decisions", () => {
     for (const vector of vectors.refresh) {
-      expect(refreshDecisionLabel(classifyRefreshCredential(vector))).toBe(vector.decision);
+      expect(refreshDecisionLabel(classifyRefreshCredential(vector))).toBe(
+        vector.decision,
+      );
     }
     for (const vector of vectors.progressiveDelay) {
       expect(
@@ -174,26 +179,40 @@ describe('TypeScript/Rust auth-core parity vectors', () => {
       ).toBe(vector.expectedMs);
     }
     for (const vector of vectors.sessionIdle) {
-      expect(isSessionIdle(vector.lastActiveAtMs, vector.idleTimeoutMs, vector.nowMs)).toBe(
-        vector.idle,
-      );
       expect(
-        sessionIdleRemainingMs(vector.lastActiveAtMs, vector.idleTimeoutMs, vector.nowMs),
+        isSessionIdle(
+          vector.lastActiveAtMs,
+          vector.idleTimeoutMs,
+          vector.nowMs,
+        ),
+      ).toBe(vector.idle);
+      expect(
+        sessionIdleRemainingMs(
+          vector.lastActiveAtMs,
+          vector.idleTimeoutMs,
+          vector.nowMs,
+        ),
       ).toBe(vector.remainingMs);
     }
   });
 
-  it('pins binding, credential epoch, lifetime, eviction, and lockout decisions', () => {
+  it("pins binding, credential epoch, lifetime, eviction, and lockout decisions", () => {
     for (const vector of vectors.sessionBindings) {
-      expect(evaluateSessionBinding(vector.expected, vector.presented)).toBe(vector.decision);
+      expect(evaluateSessionBinding(vector.expected, vector.presented)).toBe(
+        vector.decision,
+      );
     }
     for (const vector of vectors.credentialEpochs) {
-      expect(credentialEpochMatches(vector.observed, vector.current)).toBe(vector.matches);
+      expect(credentialEpochMatches(vector.observed, vector.current)).toBe(
+        vector.matches,
+      );
     }
     for (const vector of vectors.sessionLifetimes) {
       const spanMs = sessionSpanMs(vector.remembered, vector);
       expect(spanMs).toBe(vector.expectedSpanMs);
-      expect(sessionIdleWindowMs(spanMs, vector.maxIdleMs)).toBe(vector.expectedIdleWindowMs);
+      expect(sessionIdleWindowMs(spanMs, vector.maxIdleMs)).toBe(
+        vector.expectedIdleWindowMs,
+      );
     }
 
     const evicted = selectSessionsForEviction(
@@ -201,20 +220,24 @@ describe('TypeScript/Rust auth-core parity vectors', () => {
       vectors.sessionEviction.maxSessions,
       (session) => session.createdAtMs,
     );
-    expect(evicted.map((session) => session.id)).toEqual(vectors.sessionEviction.expectedIds);
+    expect(evicted.map((session) => session.id)).toEqual(
+      vectors.sessionEviction.expectedIds,
+    );
 
     for (const vector of vectors.lockouts) {
       const decision = evaluateAccountLockout(vector, vector);
       expect(decision.isLocked).toBe(vector.isLocked);
       expect(decision.failedAttempts).toBe(vector.failedAttempts);
-      expect(decision.isLocked ? (decision.remainingMs ?? null) : null).toBe(vector.remainingMs);
+      expect(decision.isLocked ? (decision.remainingMs ?? null) : null).toBe(
+        vector.remainingMs,
+      );
       expect(decision.isLocked ? (decision.lockedUntilMs ?? null) : null).toBe(
         vector.lockedUntilMs,
       );
     }
   });
 
-  it('pins one-time credential decisions', () => {
+  it("pins one-time credential decisions", () => {
     for (const vector of vectors.oneTimeCredentials) {
       const decision = evaluateOneTimeCredential(vector, vector);
       expect(oneTimeDecisionLabel(decision)).toBe(vector.decision);
@@ -223,7 +246,7 @@ describe('TypeScript/Rust auth-core parity vectors', () => {
     }
   });
 
-  it('pins MFA assurance and challenge decisions', () => {
+  it("pins MFA assurance and challenge decisions", () => {
     for (const vector of vectors.mfaAssurance) {
       expect(deriveAuthenticationAssurance(vector.evidence)).toEqual({
         level: vector.level,

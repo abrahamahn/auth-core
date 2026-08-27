@@ -12,7 +12,7 @@ export class ExpiringReplayGuard<Key> {
   }
 
   public burn(key: Key, ttlMs: number): void {
-    if (!Number.isFinite(ttlMs)) throw new RangeError('ttlMs must be finite');
+    if (!Number.isFinite(ttlMs)) throw new RangeError("ttlMs must be finite");
     const nowMs = this.#readNow();
     this.#sweep(nowMs);
     if (ttlMs <= 0) {
@@ -20,7 +20,8 @@ export class ExpiringReplayGuard<Key> {
       return;
     }
     const expiresAtMs = nowMs + ttlMs;
-    if (!Number.isFinite(expiresAtMs)) throw new RangeError('challenge expiry overflow');
+    if (!Number.isFinite(expiresAtMs))
+      throw new RangeError("challenge expiry overflow");
     this.#expiresAtByKey.set(key, expiresAtMs);
   }
 
@@ -47,7 +48,7 @@ export class ExpiringReplayGuard<Key> {
   #readNow(): number {
     const nowMs = this.#now();
     if (!Number.isFinite(nowMs) || nowMs < 0) {
-      throw new RangeError('clock must return a non-negative finite timestamp');
+      throw new RangeError("clock must return a non-negative finite timestamp");
     }
     return nowMs;
   }

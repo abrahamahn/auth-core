@@ -13,58 +13,58 @@ export const DEFAULT_PASSWORD_CONFIG = {
 } as const satisfies PasswordConfig;
 
 export const COMMON_PASSWORDS: ReadonlySet<string> = new Set([
-  'password',
-  '123456',
-  '12345678',
-  '123456789',
-  '1234567890',
-  'qwerty',
-  'abc123',
-  '111111',
-  'password1',
-  'iloveyou',
-  'admin',
-  'welcome',
-  'monkey',
-  'dragon',
-  'master',
-  'letmein',
-  'login',
-  'princess',
-  'football',
-  'shadow',
-  'sunshine',
-  'trustno1',
-  'batman',
-  'access',
-  'hello',
-  'charlie',
-  'donald',
-  '!@#$%^&*',
-  'passw0rd',
-  'qwerty123',
+  "password",
+  "123456",
+  "12345678",
+  "123456789",
+  "1234567890",
+  "qwerty",
+  "abc123",
+  "111111",
+  "password1",
+  "iloveyou",
+  "admin",
+  "welcome",
+  "monkey",
+  "dragon",
+  "master",
+  "letmein",
+  "login",
+  "princess",
+  "football",
+  "shadow",
+  "sunshine",
+  "trustno1",
+  "batman",
+  "access",
+  "hello",
+  "charlie",
+  "donald",
+  "!@#$%^&*",
+  "passw0rd",
+  "qwerty123",
 ]);
 
 export const KEYBOARD_PATTERNS: readonly string[] = [
-  'qwerty',
-  'qwertz',
-  'azerty',
-  'asdf',
-  'asdfgh',
-  'zxcv',
-  'zxcvbn',
-  'qazwsx',
-  '1qaz2wsx',
-  '1234',
-  '12345',
-  '123456',
-  '1234567',
-  '12345678',
-  '0987',
-  '09876',
-  '098765',
-  '0987654',
-  '09876543',
+  "qwerty",
+  "qwertz",
+  "azerty",
+  "asdf",
+  "asdfgh",
+  "zxcv",
+  "zxcvbn",
+  "qazwsx",
+  "1qaz2wsx",
+  "1234",
+  "12345",
+  "123456",
+  "1234567",
+  "12345678",
+  "0987",
+  "09876",
+  "098765",
+  "0987654",
+  "09876543",
 ];
 
 export interface PasswordPenalties {
@@ -116,11 +116,18 @@ export function hasRepeatedChars(password: string, minLength = 3): boolean {
 
 /** Returns true when the complete password is two or more copies of one shorter pattern. */
 export function hasRepeatedPattern(password: string): boolean {
-  for (let patternLength = 1; patternLength <= Math.floor(password.length / 2); patternLength++) {
+  for (
+    let patternLength = 1;
+    patternLength <= Math.floor(password.length / 2);
+    patternLength++
+  ) {
     if (password.length % patternLength !== 0) continue;
     let repeated = true;
     for (let index = patternLength; index < password.length; index++) {
-      if (password.charCodeAt(index) !== password.charCodeAt(index % patternLength)) {
+      if (
+        password.charCodeAt(index) !==
+        password.charCodeAt(index % patternLength)
+      ) {
         repeated = false;
         break;
       }
@@ -136,10 +143,16 @@ export function hasSequentialChars(password: string, minLength = 3): boolean {
     let ascending = true;
     let descending = true;
     for (let offset = 1; offset < minLength; offset++) {
-      if (lower.charCodeAt(start + offset) !== lower.charCodeAt(start + offset - 1) + 1) {
+      if (
+        lower.charCodeAt(start + offset) !==
+        lower.charCodeAt(start + offset - 1) + 1
+      ) {
         ascending = false;
       }
-      if (lower.charCodeAt(start + offset) !== lower.charCodeAt(start + offset - 1) - 1) {
+      if (
+        lower.charCodeAt(start + offset) !==
+        lower.charCodeAt(start + offset - 1) - 1
+      ) {
         descending = false;
       }
     }
@@ -157,16 +170,16 @@ export function isCommonPassword(password: string): boolean {
   const lower = password.toLowerCase();
   if (COMMON_PASSWORDS.has(lower)) return true;
   const normalized = lower
-    .replace(/0/g, 'o')
-    .replace(/1/g, 'i')
-    .replace(/3/g, 'e')
-    .replace(/4/g, 'a')
-    .replace(/5/g, 's')
-    .replace(/7/g, 't')
-    .replace(/8/g, 'b')
-    .replace(/@/g, 'a')
-    .replace(/\$/g, 's')
-    .replace(/!/g, 'i');
+    .replace(/0/g, "o")
+    .replace(/1/g, "i")
+    .replace(/3/g, "e")
+    .replace(/4/g, "a")
+    .replace(/5/g, "s")
+    .replace(/7/g, "t")
+    .replace(/8/g, "b")
+    .replace(/@/g, "a")
+    .replace(/\$/g, "s")
+    .replace(/!/g, "i");
   if (COMMON_PASSWORDS.has(normalized)) return true;
   let trimIndex = lower.length;
   while (trimIndex > 0) {
@@ -175,10 +188,16 @@ export function isCommonPassword(password: string): boolean {
     trimIndex -= 1;
   }
   const withoutTrailingNumbers = lower.slice(0, trimIndex);
-  return withoutTrailingNumbers.length >= 4 && COMMON_PASSWORDS.has(withoutTrailingNumbers);
+  return (
+    withoutTrailingNumbers.length >= 4 &&
+    COMMON_PASSWORDS.has(withoutTrailingNumbers)
+  );
 }
 
-export function containsUserInput(password: string, userInputs: readonly string[]): boolean {
+export function containsUserInput(
+  password: string,
+  userInputs: readonly string[],
+): boolean {
   const lower = password.toLowerCase();
   return userInputs.some((input) => {
     const candidate = input.toLowerCase();
@@ -204,10 +223,13 @@ export function estimateCrackTime(entropy: number): {
   display: string;
 } {
   const seconds = Math.pow(2, entropy) / 10_000 / 2;
-  if (seconds < 1) return { seconds, display: 'less than a second' };
-  if (seconds < 60) return { seconds, display: `${String(Math.round(seconds))} seconds` };
-  if (seconds < 3600) return { seconds, display: `${String(Math.round(seconds / 60))} minutes` };
-  if (seconds < 86_400) return { seconds, display: `${String(Math.round(seconds / 3600))} hours` };
+  if (seconds < 1) return { seconds, display: "less than a second" };
+  if (seconds < 60)
+    return { seconds, display: `${String(Math.round(seconds))} seconds` };
+  if (seconds < 3600)
+    return { seconds, display: `${String(Math.round(seconds / 60))} minutes` };
+  if (seconds < 86_400)
+    return { seconds, display: `${String(Math.round(seconds / 3600))} hours` };
   if (seconds < 2_592_000)
     return { seconds, display: `${String(Math.round(seconds / 86_400))} days` };
   if (seconds < 31_536_000)
@@ -220,10 +242,13 @@ export function estimateCrackTime(entropy: number): {
       seconds,
       display: `${String(Math.round(seconds / 31_536_000))} years`,
     };
-  return { seconds, display: 'centuries' };
+  return { seconds, display: "centuries" };
 }
 
-export function calculateScore(entropy: number, penalties: PasswordPenalties): PasswordScore {
+export function calculateScore(
+  entropy: number,
+  penalties: PasswordPenalties,
+): PasswordScore {
   const adjustedEntropy = effectiveEntropy(entropy, penalties);
   if (adjustedEntropy < 20) return 0;
   if (adjustedEntropy < 35) return 1;
@@ -232,45 +257,55 @@ export function calculateScore(entropy: number, penalties: PasswordPenalties): P
   return 4;
 }
 
-function effectiveEntropy(entropy: number, penalties: PasswordPenalties): number {
+function effectiveEntropy(
+  entropy: number,
+  penalties: PasswordPenalties,
+): number {
   if (!Number.isFinite(entropy) || entropy <= 0 || penalties.isCommon) return 0;
   let adjustedEntropy = entropy;
   // Length must never let an obvious repeated or keyboard pattern outrank its weakness.
-  if (penalties.hasRepeats) adjustedEntropy = Math.min(adjustedEntropy * 0.25, 19);
-  if (penalties.hasKeyboard) adjustedEntropy = Math.min(adjustedEntropy * 0.5, 34);
-  if (penalties.hasSequence) adjustedEntropy = Math.min(adjustedEntropy * 0.7, 49);
-  if (penalties.containsInput) adjustedEntropy = Math.min(adjustedEntropy * 0.5, 34);
+  if (penalties.hasRepeats)
+    adjustedEntropy = Math.min(adjustedEntropy * 0.25, 19);
+  if (penalties.hasKeyboard)
+    adjustedEntropy = Math.min(adjustedEntropy * 0.5, 34);
+  if (penalties.hasSequence)
+    adjustedEntropy = Math.min(adjustedEntropy * 0.7, 49);
+  if (penalties.containsInput)
+    adjustedEntropy = Math.min(adjustedEntropy * 0.5, 34);
   return Math.max(0, adjustedEntropy);
 }
 
-export function generateFeedback(password: string, penalties: PasswordPenalties): PasswordFeedback {
+export function generateFeedback(
+  password: string,
+  penalties: PasswordPenalties,
+): PasswordFeedback {
   const suggestions: string[] = [];
-  let warning = '';
+  let warning = "";
   if (penalties.isCommon) {
-    warning = 'This is a commonly used password.';
-    suggestions.push('Avoid common passwords');
+    warning = "This is a commonly used password.";
+    suggestions.push("Avoid common passwords");
   }
   if (penalties.containsInput) {
-    warning ||= 'This password contains personal information.';
-    suggestions.push('Avoid using personal information in passwords');
+    warning ||= "This password contains personal information.";
+    suggestions.push("Avoid using personal information in passwords");
   }
   if (penalties.hasKeyboard) {
-    warning ||= 'This password uses a keyboard pattern.';
+    warning ||= "This password uses a keyboard pattern.";
     suggestions.push('Avoid keyboard patterns like "qwerty" or "asdf"');
   }
   if (penalties.hasSequence) {
-    warning ||= 'This password contains sequential characters.';
+    warning ||= "This password contains sequential characters.";
     suggestions.push('Avoid sequential characters like "abc" or "123"');
   }
   if (penalties.hasRepeats) {
-    warning ||= 'This password has repeated characters.';
+    warning ||= "This password has repeated characters.";
     suggestions.push('Avoid repeated characters like "aaa"');
   }
-  if (!/[A-Z]/.test(password)) suggestions.push('Add uppercase letters');
-  if (!/[a-z]/.test(password)) suggestions.push('Add lowercase letters');
-  if (!/[0-9]/.test(password)) suggestions.push('Add numbers');
-  if (!/[^a-zA-Z0-9]/.test(password)) suggestions.push('Add symbols');
-  if (password.length < 12) suggestions.push('Make the password longer');
+  if (!/[A-Z]/.test(password)) suggestions.push("Add uppercase letters");
+  if (!/[a-z]/.test(password)) suggestions.push("Add lowercase letters");
+  if (!/[0-9]/.test(password)) suggestions.push("Add numbers");
+  if (!/[^a-zA-Z0-9]/.test(password)) suggestions.push("Add symbols");
+  if (password.length < 12) suggestions.push("Make the password longer");
   return { warning, suggestions: suggestions.slice(0, 3) };
 }
 
@@ -290,7 +325,8 @@ export function estimatePasswordStrength(
   return {
     score,
     feedback: generateFeedback(password, penalties),
-    crackTimeDisplay: estimateCrackTime(effectiveEntropy(entropy, penalties)).display,
+    crackTimeDisplay: estimateCrackTime(effectiveEntropy(entropy, penalties))
+      .display,
     entropy,
   };
 }
@@ -302,26 +338,30 @@ export function validatePassword(
 ): PasswordValidationResult {
   const errors: string[] = [];
   if (password.length < config.minLength) {
-    errors.push(`Password must be at least ${String(config.minLength)} characters`);
+    errors.push(
+      `Password must be at least ${String(config.minLength)} characters`,
+    );
   }
   if (password.length > config.maxLength) {
-    errors.push(`Password must be at most ${String(config.maxLength)} characters`);
+    errors.push(
+      `Password must be at most ${String(config.maxLength)} characters`,
+    );
   }
   if (errors.length > 0) {
     return {
       isValid: false,
       score: 0,
       errors,
-      feedback: { warning: '', suggestions: [] },
-      crackTimeDisplay: 'instant',
+      feedback: { warning: "", suggestions: [] },
+      crackTimeDisplay: "instant",
     };
   }
   const result = estimatePasswordStrength(password, userInputs);
   if (isCommonPassword(password)) {
-    errors.push('Password appears on the built-in common-password blocklist');
+    errors.push("Password appears on the built-in common-password blocklist");
   }
   if (hasRepeatedChars(password) || hasRepeatedPattern(password)) {
-    errors.push('Password cannot be a repeated character or pattern');
+    errors.push("Password cannot be a repeated character or pattern");
   }
   if (result.score < config.minScore) {
     errors.push(
@@ -343,14 +383,19 @@ export function validatePasswordBasic(
 ): BasicPasswordValidationResult {
   const errors: string[] = [];
   if (password.length < config.minLength) {
-    errors.push(`Password must be at least ${String(config.minLength)} characters`);
+    errors.push(
+      `Password must be at least ${String(config.minLength)} characters`,
+    );
   }
   if (password.length > config.maxLength) {
-    errors.push(`Password must be at most ${String(config.maxLength)} characters`);
+    errors.push(
+      `Password must be at most ${String(config.maxLength)} characters`,
+    );
   }
-  if (/^(.)\1+$/.test(password)) errors.push('Password cannot be all the same character');
+  if (/^(.)\1+$/.test(password))
+    errors.push("Password cannot be all the same character");
   if (/^(012|123|234|345|456|567|678|789|890)+$/.test(password)) {
-    errors.push('Password cannot be a simple sequence');
+    errors.push("Password cannot be a simple sequence");
   }
   return { isValid: errors.length === 0, errors };
 }
@@ -358,16 +403,16 @@ export function validatePasswordBasic(
 export function getStrengthLabel(score: number): string {
   switch (score) {
     case 0:
-      return 'Very Weak';
+      return "Very Weak";
     case 1:
-      return 'Weak';
+      return "Weak";
     case 2:
-      return 'Fair';
+      return "Fair";
     case 3:
-      return 'Strong';
+      return "Strong";
     case 4:
-      return 'Very Strong';
+      return "Very Strong";
     default:
-      return 'Unknown';
+      return "Unknown";
   }
 }

@@ -1,8 +1,8 @@
-import { randomUUID } from 'node:crypto';
+import { randomUUID } from "node:crypto";
 
-import { AuthWebAuthnError } from './error.js';
+import { AuthWebAuthnError } from "./error.js";
 
-export type WebAuthnCeremonyKind = 'registration' | 'authentication';
+export type WebAuthnCeremonyKind = "registration" | "authentication";
 
 export interface WebAuthnCeremony {
   readonly kind: WebAuthnCeremonyKind;
@@ -41,15 +41,16 @@ export class InMemoryWebAuthnCeremonyStore implements WebAuthnCeremonyStore {
 
   constructor(options: InMemoryWebAuthnCeremonyStoreOptions) {
     if (!Number.isSafeInteger(options.ttlMs) || options.ttlMs <= 0) {
-      throw new RangeError('ttlMs must be a positive safe integer');
+      throw new RangeError("ttlMs must be a positive safe integer");
     }
     this.#ttlMs = options.ttlMs;
     this.#now = options.now ?? Date.now;
   }
 
   put(key: string, ceremony: PutWebAuthnCeremonyInput): void {
-    if (key === '') throw new RangeError('ceremony key must not be empty');
-    if (ceremony.challenge === '') throw new RangeError('ceremony challenge must not be empty');
+    if (key === "") throw new RangeError("ceremony key must not be empty");
+    if (ceremony.challenge === "")
+      throw new RangeError("ceremony challenge must not be empty");
     const nowMs = this.#now();
     this.prune(nowMs);
     this.#entries.set(
@@ -65,13 +66,22 @@ export class InMemoryWebAuthnCeremonyStore implements WebAuthnCeremonyStore {
     const ceremony = this.#entries.get(key);
     this.#entries.delete(key);
     if (ceremony === undefined) {
-      throw new AuthWebAuthnError('ceremony-missing', 'WebAuthn ceremony was not found');
+      throw new AuthWebAuthnError(
+        "ceremony-missing",
+        "WebAuthn ceremony was not found",
+      );
     }
     if (ceremony.expiresAtMs <= this.#now()) {
-      throw new AuthWebAuthnError('ceremony-expired', 'WebAuthn ceremony has expired');
+      throw new AuthWebAuthnError(
+        "ceremony-expired",
+        "WebAuthn ceremony has expired",
+      );
     }
     if (ceremony.kind !== expectedKind) {
-      throw new AuthWebAuthnError('ceremony-mismatch', 'WebAuthn ceremony kind does not match');
+      throw new AuthWebAuthnError(
+        "ceremony-mismatch",
+        "WebAuthn ceremony kind does not match",
+      );
     }
     return ceremony;
   }

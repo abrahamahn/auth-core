@@ -1,8 +1,8 @@
-import { createHmac, timingSafeEqual } from 'node:crypto';
+import { createHmac, timingSafeEqual } from "node:crypto";
 
 export interface JwtHeader {
-  readonly alg: 'HS256';
-  readonly typ: 'JWT';
+  readonly alg: "HS256";
+  readonly typ: "JWT";
 }
 
 export interface JwtPayload {
@@ -28,13 +28,13 @@ export interface VerifyOptions {
 }
 
 export type JwtErrorCode =
-  | 'INVALID_TOKEN'
-  | 'INVALID_SIGNATURE'
-  | 'TOKEN_EXPIRED'
-  | 'MALFORMED_TOKEN';
+  | "INVALID_TOKEN"
+  | "INVALID_SIGNATURE"
+  | "TOKEN_EXPIRED"
+  | "MALFORMED_TOKEN";
 
 export class JwtError extends Error {
-  override readonly name = 'JwtError';
+  override readonly name = "JwtError";
 
   constructor(
     message: string,
@@ -44,7 +44,7 @@ export class JwtError extends Error {
   }
 }
 
-const HEADER: JwtHeader = Object.freeze({ alg: 'HS256', typ: 'JWT' });
+const HEADER: JwtHeader = Object.freeze({ alg: "HS256", typ: "JWT" });
 const DURATION_MULTIPLIERS: Readonly<Record<string, number>> = Object.freeze({
   s: 1,
   m: 60,
@@ -54,7 +54,10 @@ const DURATION_MULTIPLIERS: Readonly<Record<string, number>> = Object.freeze({
 
 function requireNonNegativeInteger(value: number, name: string): number {
   if (!Number.isSafeInteger(value) || value < 0) {
-    throw new JwtError(`${name} must be a non-negative integer`, 'INVALID_TOKEN');
+    throw new JwtError(
+      `${name} must be a non-negative integer`,
+      "INVALID_TOKEN",
+    );
   }
   return value;
 }
@@ -64,40 +67,47 @@ function nowInSeconds(): number {
 }
 
 function secretBytes(secret: JwtSecret): Uint8Array {
-  const bytes = typeof secret === 'string' ? Buffer.from(secret, 'utf8') : secret;
+  const bytes =
+    typeof secret === "string" ? Buffer.from(secret, "utf8") : secret;
   if (bytes.byteLength === 0) {
-    throw new JwtError('JWT secret is required', 'INVALID_TOKEN');
+    throw new JwtError("JWT secret is required", "INVALID_TOKEN");
   }
   return bytes;
 }
 
 function parseExpiration(expiration: string | number): number {
-  if (typeof expiration === 'number') {
-    return requireNonNegativeInteger(expiration, 'JWT expiration');
+  if (typeof expiration === "number") {
+    return requireNonNegativeInteger(expiration, "JWT expiration");
   }
 
   const match = /^(\d+)([smhd])$/.exec(expiration);
   if (match?.[1] === undefined || match[2] === undefined) {
-    throw new JwtError(`Invalid expiration format: ${expiration}`, 'INVALID_TOKEN');
+    throw new JwtError(
+      `Invalid expiration format: ${expiration}`,
+      "INVALID_TOKEN",
+    );
   }
 
   const value = Number(match[1]);
   const multiplier = DURATION_MULTIPLIERS[match[2]];
   if (multiplier === undefined || !Number.isSafeInteger(value * multiplier)) {
-    throw new JwtError(`Invalid expiration format: ${expiration}`, 'INVALID_TOKEN');
+    throw new JwtError(
+      `Invalid expiration format: ${expiration}`,
+      "INVALID_TOKEN",
+    );
   }
   return value * multiplier;
 }
 
 function base64UrlEncode(input: string): string {
-  return Buffer.from(input, 'utf8').toString('base64url');
+  return Buffer.from(input, "utf8").toString("base64url");
 }
 
 function base64UrlDecode(input: string): string {
   if (!/^[A-Za-z0-9_-]+$/.test(input)) {
-    throw new Error('invalid base64url');
+    throw new Error("invalid base64url");
   }
-  return Buffer.from(input, 'base64url').toString('utf8');
+  return Buffer.from(input, "base64url").toString("utf8");
 }
 
 function encodeJson(value: unknown): string {
@@ -105,23 +115,28 @@ function encodeJson(value: unknown): string {
     const encoded = JSON.stringify(value);
     return base64UrlEncode(encoded);
   } catch {
-    throw new JwtError('Malformed token payload', 'MALFORMED_TOKEN');
+    throw new JwtError("Malformed token payload", "MALFORMED_TOKEN");
   }
 }
 
 function signInput(input: string, secret: JwtSecret): string {
-  return createHmac('sha256', secretBytes(secret)).update(input).digest('base64url');
+  return createHmac("sha256", secretBytes(secret))
+    .update(input)
+    .digest("base64url");
 }
 
 function safeEqual(left: string, right: string): boolean {
-  const leftBytes = Buffer.from(left, 'utf8');
-  const rightBytes = Buffer.from(right, 'utf8');
+  const leftBytes = Buffer.from(left, "utf8");
+  const rightBytes = Buffer.from(right, "utf8");
   const length = Math.max(leftBytes.length, rightBytes.length);
   const paddedLeft = Buffer.alloc(length);
   const paddedRight = Buffer.alloc(length);
   leftBytes.copy(paddedLeft);
   rightBytes.copy(paddedRight);
-  return leftBytes.length === rightBytes.length && timingSafeEqual(paddedLeft, paddedRight);
+  return (
+    leftBytes.length === rightBytes.length &&
+    timingSafeEqual(paddedLeft, paddedRight)
+  );
 }
 
 function parseHeader(encodedHeader: string): JwtHeader {
@@ -129,16 +144,16 @@ function parseHeader(encodedHeader: string): JwtHeader {
   try {
     header = JSON.parse(base64UrlDecode(encodedHeader)) as unknown;
   } catch {
-    throw new JwtError('Invalid header', 'MALFORMED_TOKEN');
+    throw new JwtError("Invalid header", "MALFORMED_TOKEN");
   }
 
-  if (header === null || typeof header !== 'object' || Array.isArray(header)) {
-    throw new JwtError('Invalid header', 'MALFORMED_TOKEN');
+  if (header === null || typeof header !== "object" || Array.isArray(header)) {
+    throw new JwtError("Invalid header", "MALFORMED_TOKEN");
   }
 
   const record = header as Record<string, unknown>;
-  if (record['alg'] !== 'HS256' || record['typ'] !== 'JWT') {
-    throw new JwtError('Algorithm not supported', 'INVALID_TOKEN');
+  if (record["alg"] !== "HS256" || record["typ"] !== "JWT") {
+    throw new JwtError("Algorithm not supported", "INVALID_TOKEN");
   }
   return HEADER;
 }
@@ -146,53 +161,68 @@ function parseHeader(encodedHeader: string): JwtHeader {
 function parsePayload(encodedPayload: string): JwtPayload {
   try {
     const parsed = JSON.parse(base64UrlDecode(encodedPayload)) as unknown;
-    if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
-      throw new JwtError('Malformed token payload', 'MALFORMED_TOKEN');
+    if (
+      parsed === null ||
+      typeof parsed !== "object" ||
+      Array.isArray(parsed)
+    ) {
+      throw new JwtError("Malformed token payload", "MALFORMED_TOKEN");
     }
     return parsed as JwtPayload;
   } catch (error) {
     if (error instanceof JwtError) throw error;
-    throw new JwtError('Malformed token payload', 'MALFORMED_TOKEN');
+    throw new JwtError("Malformed token payload", "MALFORMED_TOKEN");
   }
 }
 
 function validateExpiration(payload: JwtPayload, options: VerifyOptions): void {
   if (payload.exp === undefined) return;
   if (!Number.isSafeInteger(payload.exp)) {
-    throw new JwtError('Malformed token payload', 'MALFORMED_TOKEN');
+    throw new JwtError("Malformed token payload", "MALFORMED_TOKEN");
   }
 
   const currentTime = requireNonNegativeInteger(
     options.currentTimeSeconds ?? nowInSeconds(),
-    'currentTimeSeconds',
+    "currentTimeSeconds",
   );
   const tolerance = requireNonNegativeInteger(
     options.clockToleranceSeconds ?? 0,
-    'clockToleranceSeconds',
+    "clockToleranceSeconds",
   );
   if (currentTime >= payload.exp + tolerance) {
-    throw new JwtError('Token has expired', 'TOKEN_EXPIRED');
+    throw new JwtError("Token has expired", "TOKEN_EXPIRED");
   }
 }
 
 /** Sign an object payload using HS256. */
-export function sign(payload: object, secret: JwtSecret, options: SignOptions = {}): string {
+export function sign(
+  payload: object,
+  secret: JwtSecret,
+  options: SignOptions = {},
+): string {
   const unknownPayload: unknown = payload;
-  if (unknownPayload === null || typeof unknownPayload !== 'object' || Array.isArray(unknownPayload)) {
-    throw new JwtError('Malformed token payload', 'MALFORMED_TOKEN');
+  if (
+    unknownPayload === null ||
+    typeof unknownPayload !== "object" ||
+    Array.isArray(unknownPayload)
+  ) {
+    throw new JwtError("Malformed token payload", "MALFORMED_TOKEN");
   }
   secretBytes(secret);
 
   const issuedAt = requireNonNegativeInteger(
     options.issuedAtSeconds ?? nowInSeconds(),
-    'issuedAtSeconds',
+    "issuedAtSeconds",
   );
   const tokenPayload: Record<string, unknown> = { ...payload, iat: issuedAt };
   if (options.expiresIn !== undefined) {
-    tokenPayload['exp'] = issuedAt + parseExpiration(options.expiresIn);
+    tokenPayload["exp"] = issuedAt + parseExpiration(options.expiresIn);
   }
-  if (tokenPayload['exp'] !== undefined && !Number.isSafeInteger(tokenPayload['exp'])) {
-    throw new JwtError('Malformed token payload', 'MALFORMED_TOKEN');
+  if (
+    tokenPayload["exp"] !== undefined &&
+    !Number.isSafeInteger(tokenPayload["exp"])
+  ) {
+    throw new JwtError("Malformed token payload", "MALFORMED_TOKEN");
   }
 
   const encodedHeader = encodeJson(HEADER);
@@ -207,21 +237,25 @@ export function verify(
   secret: JwtSecret,
   options: VerifyOptions = {},
 ): JwtPayload {
-  if (typeof token !== 'string') {
-    throw new JwtError('Token must be a string', 'INVALID_TOKEN');
+  if (typeof token !== "string") {
+    throw new JwtError("Token must be a string", "INVALID_TOKEN");
   }
   secretBytes(secret);
 
-  const parts = token.split('.');
-  if (parts.length !== 3 || parts.some((part) => part === '')) {
-    throw new JwtError('Invalid token format', 'MALFORMED_TOKEN');
+  const parts = token.split(".");
+  if (parts.length !== 3 || parts.some((part) => part === "")) {
+    throw new JwtError("Invalid token format", "MALFORMED_TOKEN");
   }
-  const [encodedHeader, encodedPayload, signature] = parts as [string, string, string];
+  const [encodedHeader, encodedPayload, signature] = parts as [
+    string,
+    string,
+    string,
+  ];
 
   parseHeader(encodedHeader);
   const expected = signInput(`${encodedHeader}.${encodedPayload}`, secret);
   if (!safeEqual(signature, expected)) {
-    throw new JwtError('Invalid signature', 'INVALID_SIGNATURE');
+    throw new JwtError("Invalid signature", "INVALID_SIGNATURE");
   }
 
   const payload = parsePayload(encodedPayload);
@@ -232,9 +266,14 @@ export function verify(
 /** Decode a JWT payload without verifying it. Never authorize from this result. */
 export function decode(token: string): JwtPayload | null {
   try {
-    const parts = token.split('.');
+    const parts = token.split(".");
     const encodedPayload = parts[1];
-    if (parts.length !== 3 || encodedPayload === undefined || encodedPayload === '') return null;
+    if (
+      parts.length !== 3 ||
+      encodedPayload === undefined ||
+      encodedPayload === ""
+    )
+      return null;
     return parsePayload(encodedPayload);
   } catch {
     return null;
@@ -250,7 +289,7 @@ export interface RotatingJwtOptions extends SignOptions {
   readonly config?: JwtRotationConfig;
 }
 
-export type UsedJwtSecret = 'current' | 'previous' | 'none';
+export type UsedJwtSecret = "current" | "previous" | "none";
 
 export interface TokenSecretCheck {
   readonly isValid: boolean;
@@ -259,7 +298,10 @@ export interface TokenSecretCheck {
 }
 
 function hasSecret(secret: JwtSecret | undefined): secret is JwtSecret {
-  return secret !== undefined && (typeof secret === 'string' ? secret !== '' : secret.byteLength > 0);
+  return (
+    secret !== undefined &&
+    (typeof secret === "string" ? secret !== "" : secret.byteLength > 0)
+  );
 }
 
 /** Sign only with the current secret. */
@@ -282,7 +324,7 @@ export function verifyWithRotation(
   } catch (currentError) {
     if (
       currentError instanceof JwtError &&
-      currentError.code === 'INVALID_SIGNATURE' &&
+      currentError.code === "INVALID_SIGNATURE" &&
       hasSecret(config.previousSecret)
     ) {
       try {
@@ -303,23 +345,23 @@ export function checkTokenSecret(
 ): TokenSecretCheck {
   try {
     verify(token, config.secret, options);
-    return { isValid: true, usedSecret: 'current' };
+    return { isValid: true, usedSecret: "current" };
   } catch (currentError) {
     if (
       currentError instanceof JwtError &&
-      currentError.code === 'INVALID_SIGNATURE' &&
+      currentError.code === "INVALID_SIGNATURE" &&
       hasSecret(config.previousSecret)
     ) {
       try {
         verify(token, config.previousSecret, options);
-        return { isValid: true, usedSecret: 'previous' };
+        return { isValid: true, usedSecret: "previous" };
       } catch {
         // Preserve the current-secret error below.
       }
     }
     return currentError instanceof JwtError
-      ? { isValid: false, usedSecret: 'none', error: currentError }
-      : { isValid: false, usedSecret: 'none' };
+      ? { isValid: false, usedSecret: "none", error: currentError }
+      : { isValid: false, usedSecret: "none" };
   }
 }
 
@@ -328,11 +370,16 @@ export interface JwtRotationHandler {
   verify(token: string, options?: VerifyOptions): JwtPayload;
   checkSecret(token: string, options?: VerifyOptions): TokenSecretCheck;
   isRotating(): boolean;
-  getConfig(): { readonly hasSecret: boolean; readonly hasPreviousSecret: boolean };
+  getConfig(): {
+    readonly hasSecret: boolean;
+    readonly hasPreviousSecret: boolean;
+  };
 }
 
 /** Bind immutable key-rotation configuration to a small signing and verification facade. */
-export function createJwtRotationHandler(config: JwtRotationConfig): JwtRotationHandler {
+export function createJwtRotationHandler(
+  config: JwtRotationConfig,
+): JwtRotationHandler {
   return {
     sign: (payload, options) => signWithRotation(payload, config, options),
     verify: (token, options) => verifyWithRotation(token, config, options),

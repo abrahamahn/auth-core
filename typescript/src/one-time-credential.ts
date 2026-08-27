@@ -12,20 +12,20 @@ export interface OneTimeCredentialPolicy {
 }
 
 export type OneTimeCredentialRejectionReason =
-  | 'not-found'
-  | 'already-consumed'
-  | 'expired'
-  | 'mismatch'
-  | 'attempts-exhausted';
+  | "not-found"
+  | "already-consumed"
+  | "expired"
+  | "mismatch"
+  | "attempts-exhausted";
 
 export type OneTimeCredentialDecision =
   | {
-      readonly kind: 'accept';
+      readonly kind: "accept";
       readonly consume: true;
       readonly failedAttempts: number;
     }
   | {
-      readonly kind: 'reject';
+      readonly kind: "reject";
       readonly reason: OneTimeCredentialRejectionReason;
       readonly consume: boolean;
       readonly failedAttempts: number;
@@ -53,54 +53,58 @@ export function evaluateOneTimeCredential(
   facts: OneTimeCredentialFacts,
   policy: OneTimeCredentialPolicy,
 ): OneTimeCredentialDecision {
-  requireTimestamp(facts.nowMs, 'nowMs');
-  requireAttemptCount(facts.failedAttempts, 'failedAttempts');
-  if (!Number.isSafeInteger(policy.maxFailedAttempts) || policy.maxFailedAttempts <= 0) {
-    throw new RangeError('maxFailedAttempts must be a positive safe integer');
+  requireTimestamp(facts.nowMs, "nowMs");
+  requireAttemptCount(facts.failedAttempts, "failedAttempts");
+  if (
+    !Number.isSafeInteger(policy.maxFailedAttempts) ||
+    policy.maxFailedAttempts <= 0
+  ) {
+    throw new RangeError("maxFailedAttempts must be a positive safe integer");
   }
 
   if (!facts.exists) {
     return {
-      kind: 'reject',
-      reason: 'not-found',
+      kind: "reject",
+      reason: "not-found",
       consume: false,
       failedAttempts: facts.failedAttempts,
     };
   }
 
   if (facts.expiresAtMs == null) {
-    throw new RangeError('expiresAtMs is required for an existing credential');
+    throw new RangeError("expiresAtMs is required for an existing credential");
   }
-  requireTimestamp(facts.expiresAtMs, 'expiresAtMs');
-  if (facts.consumedAtMs != null) requireTimestamp(facts.consumedAtMs, 'consumedAtMs');
+  requireTimestamp(facts.expiresAtMs, "expiresAtMs");
+  if (facts.consumedAtMs != null)
+    requireTimestamp(facts.consumedAtMs, "consumedAtMs");
 
   if (facts.consumedAtMs != null) {
     return {
-      kind: 'reject',
-      reason: 'already-consumed',
+      kind: "reject",
+      reason: "already-consumed",
       consume: false,
       failedAttempts: facts.failedAttempts,
     };
   }
   if (facts.nowMs >= facts.expiresAtMs) {
     return {
-      kind: 'reject',
-      reason: 'expired',
+      kind: "reject",
+      reason: "expired",
       consume: false,
       failedAttempts: facts.failedAttempts,
     };
   }
   if (facts.failedAttempts >= policy.maxFailedAttempts) {
     return {
-      kind: 'reject',
-      reason: 'attempts-exhausted',
+      kind: "reject",
+      reason: "attempts-exhausted",
       consume: true,
       failedAttempts: facts.failedAttempts,
     };
   }
   if (facts.presentedMatches) {
     return {
-      kind: 'accept',
+      kind: "accept",
       consume: true,
       failedAttempts: facts.failedAttempts,
     };
@@ -108,9 +112,11 @@ export function evaluateOneTimeCredential(
 
   const failedAttempts = facts.failedAttempts + 1;
   return {
-    kind: 'reject',
+    kind: "reject",
     reason:
-      failedAttempts >= policy.maxFailedAttempts ? 'attempts-exhausted' : 'mismatch',
+      failedAttempts >= policy.maxFailedAttempts
+        ? "attempts-exhausted"
+        : "mismatch",
     consume: failedAttempts >= policy.maxFailedAttempts,
     failedAttempts,
   };

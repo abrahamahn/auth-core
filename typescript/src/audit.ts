@@ -34,7 +34,11 @@ export const AUTH_AUDIT_EVENT_TYPES = [
 
 export type AuthAuditEventType = (typeof AUTH_AUDIT_EVENT_TYPES)[number];
 export type AuthAuditSeverity = "low" | "medium" | "high" | "critical";
-export type AuthAuditOutcome = "success" | "failure" | "denied" | "informational";
+export type AuthAuditOutcome =
+  | "success"
+  | "failure"
+  | "denied"
+  | "informational";
 export type AuthAuditFactor =
   | "password"
   | "magic-link"
@@ -54,7 +58,9 @@ export type AuthAuditMetadataValue =
   | readonly AuthAuditMetadataValue[]
   | { readonly [key: string]: AuthAuditMetadataValue };
 
-export type AuthAuditMetadata = Readonly<Record<string, AuthAuditMetadataValue>>;
+export type AuthAuditMetadata = Readonly<
+  Record<string, AuthAuditMetadataValue>
+>;
 
 export interface AuthAuditEvent {
   readonly type: AuthAuditEventType;
@@ -70,7 +76,8 @@ export interface AuthAuditEvent {
   readonly metadata?: AuthAuditMetadata | undefined;
 }
 
-export interface CreateAuthAuditEventInput extends Omit<AuthAuditEvent, "metadata"> {
+export interface CreateAuthAuditEventInput
+  extends Omit<AuthAuditEvent, "metadata"> {
   readonly metadata?: Readonly<Record<string, unknown>> | undefined;
 }
 
@@ -103,15 +110,22 @@ export function isSensitiveAuthAuditMetadataKey(key: string): boolean {
   return SENSITIVE_METADATA_KEYS.has(normalizeMetadataKey(key));
 }
 
-function protectMetadataValue(value: unknown, path: string): AuthAuditMetadataValue {
-  if (value === null || typeof value === "string" || typeof value === "boolean") return value;
+function protectMetadataValue(
+  value: unknown,
+  path: string,
+): AuthAuditMetadataValue {
+  if (value === null || typeof value === "string" || typeof value === "boolean")
+    return value;
   if (typeof value === "number") {
-    if (!Number.isFinite(value)) throw new TypeError(`${path} must contain only finite numbers`);
+    if (!Number.isFinite(value))
+      throw new TypeError(`${path} must contain only finite numbers`);
     return value;
   }
   if (Array.isArray(value)) {
     return Object.freeze(
-      value.map((entry, index) => protectMetadataValue(entry, `${path}[${String(index)}]`)),
+      value.map((entry, index) =>
+        protectMetadataValue(entry, `${path}[${String(index)}]`),
+      ),
     );
   }
   if (typeof value !== "object") {
@@ -127,7 +141,9 @@ function protectMetadataValue(value: unknown, path: string): AuthAuditMetadataVa
 
   const protectedEntries = Object.entries(value).map(([key, entry]) => {
     if (isSensitiveAuthAuditMetadataKey(key)) {
-      throw new TypeError(`${path}.${key} is not permitted in authentication audit metadata`);
+      throw new TypeError(
+        `${path}.${key} is not permitted in authentication audit metadata`,
+      );
     }
     return [key, protectMetadataValue(entry, `${path}.${key}`)] as const;
   });
@@ -135,7 +151,9 @@ function protectMetadataValue(value: unknown, path: string): AuthAuditMetadataVa
 }
 
 /** Creates an immutable audit event and rejects secret-bearing or non-JSON metadata. */
-export function createAuthAuditEvent(input: CreateAuthAuditEventInput): AuthAuditEvent {
+export function createAuthAuditEvent(
+  input: CreateAuthAuditEventInput,
+): AuthAuditEvent {
   if (!Number.isSafeInteger(input.occurredAtMs)) {
     throw new RangeError("occurredAtMs must be a safe integer timestamp");
   }
@@ -143,7 +161,10 @@ export function createAuthAuditEvent(input: CreateAuthAuditEventInput): AuthAudi
   const metadata =
     unprotectedMetadata === undefined
       ? undefined
-      : (protectMetadataValue(unprotectedMetadata, "metadata") as AuthAuditMetadata);
+      : (protectMetadataValue(
+          unprotectedMetadata,
+          "metadata",
+        ) as AuthAuditMetadata);
   return Object.freeze({
     ...event,
     ...(metadata === undefined ? {} : { metadata }),

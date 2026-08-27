@@ -3,14 +3,14 @@ import {
   generateRegistrationOptions,
   verifyAuthenticationResponse,
   verifyRegistrationResponse,
-} from '@simplewebauthn/server';
+} from "@simplewebauthn/server";
 
-import { AuthWebAuthnError } from './error.js';
+import { AuthWebAuthnError } from "./error.js";
 import {
   parseWebAuthnAuthenticationResponse,
   parseWebAuthnRegistrationResponse,
   readWebAuthnResponseTransports,
-} from './response.js';
+} from "./response.js";
 
 import type {
   GenerateWebAuthnAuthenticationOptionsInput,
@@ -23,19 +23,19 @@ import type {
   WebAuthnRegistrationOptions,
   WebAuthnRegistrationResult,
   WebAuthnRelyingPartyConfig,
-} from './types.js';
+} from "./types.js";
 
 interface NormalizedConfig {
   readonly rpName: string;
   readonly rpId: string;
   readonly expectedOrigin: string | string[];
-  readonly attestation: 'none' | 'direct' | 'enterprise';
-  readonly userVerification: 'required' | 'preferred' | 'discouraged';
+  readonly attestation: "none" | "direct" | "enterprise";
+  readonly userVerification: "required" | "preferred" | "discouraged";
   readonly timeoutMs?: number | undefined;
 }
 
 function invalidConfig(message: string): AuthWebAuthnError {
-  return new AuthWebAuthnError('invalid-config', message);
+  return new AuthWebAuthnError("invalid-config", message);
 }
 
 function validateOrigin(origin: string, rpId: string): void {
@@ -45,50 +45,72 @@ function validateOrigin(origin: string, rpId: string): void {
   } catch (cause) {
     throw invalidConfig(`expectedOrigin is not a valid URL: ${String(cause)}`);
   }
-  const localHttp = parsed.protocol === 'http:' && parsed.hostname === 'localhost';
-  if (parsed.protocol !== 'https:' && !localHttp) {
-    throw invalidConfig('expectedOrigin must use HTTPS except for localhost development');
+  const localHttp =
+    parsed.protocol === "http:" && parsed.hostname === "localhost";
+  if (parsed.protocol !== "https:" && !localHttp) {
+    throw invalidConfig(
+      "expectedOrigin must use HTTPS except for localhost development",
+    );
   }
-  if (parsed.username !== '' || parsed.password !== '' || parsed.search !== '' || parsed.hash !== '') {
-    throw invalidConfig('expectedOrigin must not contain credentials, query, or fragment');
+  if (
+    parsed.username !== "" ||
+    parsed.password !== "" ||
+    parsed.search !== "" ||
+    parsed.hash !== ""
+  ) {
+    throw invalidConfig(
+      "expectedOrigin must not contain credentials, query, or fragment",
+    );
   }
-  if (parsed.pathname !== '/') throw invalidConfig('expectedOrigin must not contain a path');
+  if (parsed.pathname !== "/")
+    throw invalidConfig("expectedOrigin must not contain a path");
   if (parsed.hostname !== rpId && !parsed.hostname.endsWith(`.${rpId}`)) {
-    throw invalidConfig('rpId must be the origin host or one of its registrable suffixes');
+    throw invalidConfig(
+      "rpId must be the origin host or one of its registrable suffixes",
+    );
   }
 }
 
 function normalizeConfig(config: WebAuthnRelyingPartyConfig): NormalizedConfig {
-  if (config.rpName.trim() === '') throw invalidConfig('rpName must not be empty');
-  if (config.rpId.trim() === '' || config.rpId.includes('://')) {
-    throw invalidConfig('rpId must be a domain name without a URL scheme');
+  if (config.rpName.trim() === "")
+    throw invalidConfig("rpName must not be empty");
+  if (config.rpId.trim() === "" || config.rpId.includes("://")) {
+    throw invalidConfig("rpId must be a domain name without a URL scheme");
   }
-  const origins = typeof config.expectedOrigin === 'string' ? [config.expectedOrigin] : config.expectedOrigin;
+  const origins =
+    typeof config.expectedOrigin === "string"
+      ? [config.expectedOrigin]
+      : config.expectedOrigin;
   const firstOrigin = origins[0];
-  if (firstOrigin === undefined) throw invalidConfig('at least one expectedOrigin is required');
+  if (firstOrigin === undefined)
+    throw invalidConfig("at least one expectedOrigin is required");
   for (const origin of origins) validateOrigin(origin, config.rpId);
   if (
     config.timeoutMs !== undefined &&
     (!Number.isSafeInteger(config.timeoutMs) || config.timeoutMs <= 0)
   ) {
-    throw invalidConfig('timeoutMs must be a positive safe integer');
+    throw invalidConfig("timeoutMs must be a positive safe integer");
   }
   return Object.freeze({
     rpName: config.rpName,
     rpId: config.rpId,
     expectedOrigin: origins.length === 1 ? firstOrigin : [...origins],
-    attestation: config.attestation ?? 'none',
-    userVerification: config.userVerification ?? 'preferred',
+    attestation: config.attestation ?? "none",
+    userVerification: config.userVerification ?? "preferred",
     ...(config.timeoutMs === undefined ? {} : { timeoutMs: config.timeoutMs }),
   });
 }
 
 function descriptors(
   values: readonly WebAuthnCredentialDescriptor[] | undefined,
-): { id: string; transports?: import('./types.js').WebAuthnTransport[] }[] | undefined {
+):
+  | { id: string; transports?: import("./types.js").WebAuthnTransport[] }[]
+  | undefined {
   return values?.map((credential) => ({
     id: credential.id,
-    ...(credential.transports === undefined ? {} : { transports: [...credential.transports] }),
+    ...(credential.transports === undefined
+      ? {}
+      : { transports: [...credential.transports] }),
   }));
 }
 
@@ -102,18 +124,25 @@ export class AuthWebAuthnServer {
   async generateRegistrationOptions(
     input: GenerateWebAuthnRegistrationOptionsInput,
   ): Promise<WebAuthnRegistrationOptions> {
-    if (input.userName.trim() === '') throw new RangeError('userName must not be empty');
+    if (input.userName.trim() === "")
+      throw new RangeError("userName must not be empty");
     return generateRegistrationOptions({
       rpName: this.#config.rpName,
       rpID: this.#config.rpId,
       userName: input.userName,
-      ...(input.userDisplayName === undefined ? {} : { userDisplayName: input.userDisplayName }),
-      ...(input.userId === undefined ? {} : { userID: Uint8Array.from(input.userId) }),
-      ...(this.#config.timeoutMs === undefined ? {} : { timeout: this.#config.timeoutMs }),
+      ...(input.userDisplayName === undefined
+        ? {}
+        : { userDisplayName: input.userDisplayName }),
+      ...(input.userId === undefined
+        ? {}
+        : { userID: Uint8Array.from(input.userId) }),
+      ...(this.#config.timeoutMs === undefined
+        ? {}
+        : { timeout: this.#config.timeoutMs }),
       attestationType: this.#config.attestation,
       excludeCredentials: descriptors(input.excludeCredentials) ?? [],
       authenticatorSelection: {
-        residentKey: 'preferred',
+        residentKey: "preferred",
         userVerification: this.#config.userVerification,
       },
     });
@@ -128,10 +157,13 @@ export class AuthWebAuthnServer {
       expectedChallenge: input.expectedChallenge,
       expectedOrigin: this.#config.expectedOrigin,
       expectedRPID: this.#config.rpId,
-      requireUserVerification: this.#config.userVerification !== 'discouraged',
+      requireUserVerification: this.#config.userVerification !== "discouraged",
     });
     if (!verification.verified) {
-      throw new AuthWebAuthnError('verification-failed', 'WebAuthn registration was not verified');
+      throw new AuthWebAuthnError(
+        "verification-failed",
+        "WebAuthn registration was not verified",
+      );
     }
     const info = verification.registrationInfo;
     const responseTransports = readWebAuthnResponseTransports(input.response);
@@ -140,7 +172,9 @@ export class AuthWebAuthnServer {
         id: info.credential.id,
         publicKey: new Uint8Array(info.credential.publicKey),
         counter: info.credential.counter,
-        ...(responseTransports.length === 0 ? {} : { transports: responseTransports }),
+        ...(responseTransports.length === 0
+          ? {}
+          : { transports: responseTransports }),
       }),
       deviceType: info.credentialDeviceType,
       backedUp: info.credentialBackedUp,
@@ -157,7 +191,9 @@ export class AuthWebAuthnServer {
     const allowCredentials = descriptors(input.allowCredentials);
     return generateAuthenticationOptions({
       rpID: this.#config.rpId,
-      ...(this.#config.timeoutMs === undefined ? {} : { timeout: this.#config.timeoutMs }),
+      ...(this.#config.timeoutMs === undefined
+        ? {}
+        : { timeout: this.#config.timeoutMs }),
       ...(allowCredentials === undefined ? {} : { allowCredentials }),
       userVerification: this.#config.userVerification,
     });
@@ -171,7 +207,7 @@ export class AuthWebAuthnServer {
       expectedChallenge: input.expectedChallenge,
       expectedOrigin: this.#config.expectedOrigin,
       expectedRPID: this.#config.rpId,
-      requireUserVerification: this.#config.userVerification !== 'discouraged',
+      requireUserVerification: this.#config.userVerification !== "discouraged",
       credential: {
         id: input.credential.id,
         publicKey: Uint8Array.from(input.credential.publicKey),
@@ -182,7 +218,10 @@ export class AuthWebAuthnServer {
       },
     });
     if (!verification.verified) {
-      throw new AuthWebAuthnError('verification-failed', 'WebAuthn authentication was not verified');
+      throw new AuthWebAuthnError(
+        "verification-failed",
+        "WebAuthn authentication was not verified",
+      );
     }
     const info = verification.authenticationInfo;
     return Object.freeze({
@@ -197,6 +236,8 @@ export class AuthWebAuthnServer {
   }
 }
 
-export function createAuthWebAuthnServer(config: WebAuthnRelyingPartyConfig): AuthWebAuthnServer {
+export function createAuthWebAuthnServer(
+  config: WebAuthnRelyingPartyConfig,
+): AuthWebAuthnServer {
   return new AuthWebAuthnServer(config);
 }

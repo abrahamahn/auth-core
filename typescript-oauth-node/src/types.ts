@@ -1,4 +1,4 @@
-export type OAuthProvider = 'google' | 'github' | 'kakao' | 'apple';
+export type OAuthProvider = "google" | "github" | "kakao" | "apple";
 
 export interface OAuthTokenSet {
   readonly accessToken: string;
@@ -50,24 +50,24 @@ export interface OAuthRuntime {
 }
 
 export type OAuthErrorCode =
-  | 'INVALID_CONFIG'
-  | 'TOKEN_EXCHANGE_FAILED'
-  | 'TOKEN_REFRESH_FAILED'
-  | 'USERINFO_FAILED'
-  | 'NO_EMAIL'
-  | 'MALFORMED_RESPONSE'
-  | 'KEYS_FETCH_FAILED'
-  | 'KEY_NOT_FOUND'
-  | 'INVALID_ID_TOKEN'
-  | 'INVALID_ALGORITHM'
-  | 'INVALID_SIGNATURE'
-  | 'INVALID_ISSUER'
-  | 'INVALID_AUDIENCE'
-  | 'TOKEN_EXPIRED'
-  | 'INVALID_IAT';
+  | "INVALID_CONFIG"
+  | "TOKEN_EXCHANGE_FAILED"
+  | "TOKEN_REFRESH_FAILED"
+  | "USERINFO_FAILED"
+  | "NO_EMAIL"
+  | "MALFORMED_RESPONSE"
+  | "KEYS_FETCH_FAILED"
+  | "KEY_NOT_FOUND"
+  | "INVALID_ID_TOKEN"
+  | "INVALID_ALGORITHM"
+  | "INVALID_SIGNATURE"
+  | "INVALID_ISSUER"
+  | "INVALID_AUDIENCE"
+  | "TOKEN_EXPIRED"
+  | "INVALID_IAT";
 
 export class OAuthError extends Error {
-  override readonly name = 'OAuthError';
+  override readonly name = "OAuthError";
 
   constructor(
     message: string,

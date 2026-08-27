@@ -36,10 +36,13 @@ function requireAttemptCount(value: number, label: string): void {
   }
 }
 
-export function isLockoutThresholdReached(failedAttempts: number, maxAttempts: number): boolean {
-  requireAttemptCount(failedAttempts, 'failedAttempts');
+export function isLockoutThresholdReached(
+  failedAttempts: number,
+  maxAttempts: number,
+): boolean {
+  requireAttemptCount(failedAttempts, "failedAttempts");
   if (!Number.isSafeInteger(maxAttempts) || maxAttempts <= 0) {
-    throw new RangeError('maxAttempts must be a positive safe integer');
+    throw new RangeError("maxAttempts must be a positive safe integer");
   }
   return failedAttempts >= maxAttempts;
 }
@@ -51,16 +54,24 @@ export function progressiveDelayMs(
   baseDelayMs: number,
   maxDelayMs: number,
 ): number {
-  requireAttemptCount(failedAttempts, 'failedAttempts');
-  requireFinite(nowMs, 'nowMs');
-  requireNonNegative(baseDelayMs, 'baseDelayMs');
-  requireNonNegative(maxDelayMs, 'maxDelayMs');
+  requireAttemptCount(failedAttempts, "failedAttempts");
+  requireFinite(nowMs, "nowMs");
+  requireNonNegative(baseDelayMs, "baseDelayMs");
+  requireNonNegative(maxDelayMs, "maxDelayMs");
   if (maxDelayMs < baseDelayMs) {
-    throw new RangeError('maxDelayMs must be at least baseDelayMs');
+    throw new RangeError("maxDelayMs must be at least baseDelayMs");
   }
-  if (failedAttempts === 0 || mostRecentFailureAtMs === null || baseDelayMs === 0) return 0;
-  requireFinite(mostRecentFailureAtMs, 'mostRecentFailureAtMs');
-  const fullDelay = Math.min(baseDelayMs * 2 ** (failedAttempts - 1), maxDelayMs);
+  if (
+    failedAttempts === 0 ||
+    mostRecentFailureAtMs === null ||
+    baseDelayMs === 0
+  )
+    return 0;
+  requireFinite(mostRecentFailureAtMs, "mostRecentFailureAtMs");
+  const fullDelay = Math.min(
+    baseDelayMs * 2 ** (failedAttempts - 1),
+    maxDelayMs,
+  );
   const elapsedMs = Math.max(0, nowMs - mostRecentFailureAtMs);
   return Math.max(0, fullDelay - elapsedMs);
 }
@@ -69,14 +80,18 @@ export function evaluateAccountLockout(
   facts: AccountLockoutFacts,
   policy: AccountLockoutPolicy,
 ): AccountLockoutDecision {
-  requireFinite(facts.nowMs, 'nowMs');
-  requireNonNegative(policy.lockoutDurationMs, 'lockoutDurationMs');
-  const isLocked = isLockoutThresholdReached(facts.failedAttempts, policy.maxAttempts);
-  if (!isLocked) return { isLocked: false, failedAttempts: facts.failedAttempts };
+  requireFinite(facts.nowMs, "nowMs");
+  requireNonNegative(policy.lockoutDurationMs, "lockoutDurationMs");
+  const isLocked = isLockoutThresholdReached(
+    facts.failedAttempts,
+    policy.maxAttempts,
+  );
+  if (!isLocked)
+    return { isLocked: false, failedAttempts: facts.failedAttempts };
   if (facts.mostRecentFailureAtMs == null) {
     return { isLocked: true, failedAttempts: facts.failedAttempts };
   }
-  requireFinite(facts.mostRecentFailureAtMs, 'mostRecentFailureAtMs');
+  requireFinite(facts.mostRecentFailureAtMs, "mostRecentFailureAtMs");
   const lockedUntilMs = facts.mostRecentFailureAtMs + policy.lockoutDurationMs;
   if (lockedUntilMs <= facts.nowMs) {
     return { isLocked: false, failedAttempts: facts.failedAttempts };

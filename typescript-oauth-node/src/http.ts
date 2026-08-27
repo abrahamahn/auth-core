@@ -1,6 +1,11 @@
-import { OAuthError } from './types.js';
+import { OAuthError } from "./types.js";
 
-import type { OAuthErrorCode, OAuthProvider, OAuthRuntime, OAuthTokenSet } from './types.js';
+import type {
+  OAuthErrorCode,
+  OAuthProvider,
+  OAuthRuntime,
+  OAuthTokenSet,
+} from "./types.js";
 
 export interface ProviderRuntime {
   readonly fetch: typeof globalThis.fetch;
@@ -14,9 +19,13 @@ export function providerRuntime(runtime: OAuthRuntime = {}): ProviderRuntime {
   };
 }
 
-export function requireConfig(value: string, field: string, provider: OAuthProvider): string {
-  if (value.trim() === '') {
-    throw new OAuthError(`${field} is required`, provider, 'INVALID_CONFIG');
+export function requireConfig(
+  value: string,
+  field: string,
+  provider: OAuthProvider,
+): string {
+  if (value.trim() === "") {
+    throw new OAuthError(`${field} is required`, provider, "INVALID_CONFIG");
   }
   return value;
 }
@@ -29,23 +38,38 @@ export async function requireOk(
 ): Promise<void> {
   if (!response.ok) {
     await response.body?.cancel().catch(() => undefined);
-    throw new OAuthError(`${action} failed with HTTP ${String(response.status)}`, provider, code, response.status);
+    throw new OAuthError(
+      `${action} failed with HTTP ${String(response.status)}`,
+      provider,
+      code,
+      response.status,
+    );
   }
 }
 
 export async function jsonRecord(
   response: Response,
   provider: OAuthProvider,
-  code: OAuthErrorCode = 'MALFORMED_RESPONSE',
+  code: OAuthErrorCode = "MALFORMED_RESPONSE",
 ): Promise<Record<string, unknown>> {
   let data: unknown;
   try {
     data = await response.json();
   } catch {
-    throw new OAuthError('Provider returned invalid JSON', provider, code, response.status);
+    throw new OAuthError(
+      "Provider returned invalid JSON",
+      provider,
+      code,
+      response.status,
+    );
   }
-  if (data === null || typeof data !== 'object' || Array.isArray(data)) {
-    throw new OAuthError('Provider returned an invalid object', provider, code, response.status);
+  if (data === null || typeof data !== "object" || Array.isArray(data)) {
+    throw new OAuthError(
+      "Provider returned an invalid object",
+      provider,
+      code,
+      response.status,
+    );
   }
   return data as Record<string, unknown>;
 }
@@ -54,27 +78,39 @@ export function requiredString(
   record: Record<string, unknown>,
   field: string,
   provider: OAuthProvider,
-  code: OAuthErrorCode = 'MALFORMED_RESPONSE',
+  code: OAuthErrorCode = "MALFORMED_RESPONSE",
 ): string {
   const value = record[field];
-  if (typeof value !== 'string' || value === '') {
-    throw new OAuthError(`Provider response is missing ${field}`, provider, code);
+  if (typeof value !== "string" || value === "") {
+    throw new OAuthError(
+      `Provider response is missing ${field}`,
+      provider,
+      code,
+    );
   }
   return value;
 }
 
-export function optionalString(record: Record<string, unknown>, field: string): string | undefined {
+export function optionalString(
+  record: Record<string, unknown>,
+  field: string,
+): string | undefined {
   const value = record[field];
-  return typeof value === 'string' && value !== '' ? value : undefined;
+  return typeof value === "string" && value !== "" ? value : undefined;
 }
 
-export function optionalNumber(record: Record<string, unknown>, field: string): number | undefined {
+export function optionalNumber(
+  record: Record<string, unknown>,
+  field: string,
+): number | undefined {
   const value = record[field];
-  return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : undefined;
+  return typeof value === "number" && Number.isFinite(value) && value >= 0
+    ? value
+    : undefined;
 }
 
 export function accessToken(tokens: OAuthTokenSet | string): string {
-  return typeof tokens === 'string' ? tokens : tokens.accessToken;
+  return typeof tokens === "string" ? tokens : tokens.accessToken;
 }
 
 export function tokenSetFromResponse(
@@ -82,13 +118,13 @@ export function tokenSetFromResponse(
   provider: OAuthProvider,
   nowMs: number,
 ): OAuthTokenSet {
-  const accessTokenValue = requiredString(record, 'access_token', provider);
-  const tokenType = optionalString(record, 'token_type') ?? 'Bearer';
-  const refreshToken = optionalString(record, 'refresh_token');
-  const idToken = optionalString(record, 'id_token');
-  const scope = optionalString(record, 'scope');
-  const expiresIn = optionalNumber(record, 'expires_in');
-  const refreshExpiresIn = optionalNumber(record, 'refresh_token_expires_in');
+  const accessTokenValue = requiredString(record, "access_token", provider);
+  const tokenType = optionalString(record, "token_type") ?? "Bearer";
+  const refreshToken = optionalString(record, "refresh_token");
+  const idToken = optionalString(record, "id_token");
+  const scope = optionalString(record, "scope");
+  const expiresIn = optionalNumber(record, "expires_in");
+  const refreshExpiresIn = optionalNumber(record, "refresh_token_expires_in");
 
   return {
     accessToken: accessTokenValue,
@@ -96,7 +132,9 @@ export function tokenSetFromResponse(
     ...(refreshToken === undefined ? {} : { refreshToken }),
     ...(idToken === undefined ? {} : { idToken }),
     ...(scope === undefined ? {} : { scope }),
-    ...(expiresIn === undefined ? {} : { expiresAt: new Date(nowMs + expiresIn * 1_000) }),
+    ...(expiresIn === undefined
+      ? {}
+      : { expiresAt: new Date(nowMs + expiresIn * 1_000) }),
     ...(refreshExpiresIn === undefined
       ? {}
       : { refreshTokenExpiresAt: new Date(nowMs + refreshExpiresIn * 1_000) }),
@@ -106,11 +144,11 @@ export function tokenSetFromResponse(
 export function tokenError(
   record: Record<string, unknown>,
   provider: OAuthProvider,
-  code: 'TOKEN_EXCHANGE_FAILED' | 'TOKEN_REFRESH_FAILED',
+  code: "TOKEN_EXCHANGE_FAILED" | "TOKEN_REFRESH_FAILED",
 ): void {
-  const error = optionalString(record, 'error');
+  const error = optionalString(record, "error");
   if (error !== undefined) {
-    const description = optionalString(record, 'error_description');
+    const description = optionalString(record, "error_description");
     throw new OAuthError(description ?? error, provider, code);
   }
 }

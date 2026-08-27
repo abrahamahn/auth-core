@@ -1,10 +1,16 @@
-export interface RoleDefinition<Role extends string, Permission extends string> {
+export interface RoleDefinition<
+  Role extends string,
+  Permission extends string,
+> {
   readonly role: Role;
   readonly grants?: readonly Permission[];
   readonly inherits?: readonly Role[];
 }
 
-export type AuthorizationDecision<Role extends string, Permission extends string> =
+export type AuthorizationDecision<
+  Role extends string,
+  Permission extends string,
+> =
   | {
       readonly authorized: true;
       readonly role: Role;
@@ -14,7 +20,7 @@ export type AuthorizationDecision<Role extends string, Permission extends string
       readonly authorized: false;
       readonly role: Role;
       readonly permission: Permission;
-      readonly reason: 'unknown-role' | 'missing-permission';
+      readonly reason: "unknown-role" | "missing-permission";
     };
 
 /**
@@ -30,7 +36,8 @@ export class RbacPolicy<Role extends string, Permission extends string> {
   public constructor(definitions: readonly RoleDefinition<Role, Permission>[]) {
     const definitionsByRole = new Map<Role, RoleDefinition<Role, Permission>>();
     for (const definition of definitions) {
-      if (definition.role.trim() === '') throw new Error('role must not be empty');
+      if (definition.role.trim() === "")
+        throw new Error("role must not be empty");
       if (definitionsByRole.has(definition.role)) {
         throw new Error(`duplicate role definition: ${definition.role}`);
       }
@@ -40,22 +47,28 @@ export class RbacPolicy<Role extends string, Permission extends string> {
     const visiting = new Set<Role>();
     const resolve = (
       role: Role,
-    ): { readonly permissions: ReadonlySet<Permission>; readonly roles: ReadonlySet<Role> } => {
+    ): {
+      readonly permissions: ReadonlySet<Permission>;
+      readonly roles: ReadonlySet<Role>;
+    } => {
       const cachedPermissions = this.#permissionsByRole.get(role);
       const cachedRoles = this.#rolesByRole.get(role);
       if (cachedPermissions !== undefined && cachedRoles !== undefined) {
         return { permissions: cachedPermissions, roles: cachedRoles };
       }
       const definition = definitionsByRole.get(role);
-      if (definition === undefined) throw new Error(`unknown inherited role: ${role}`);
-      if (visiting.has(role)) throw new Error(`role inheritance cycle includes: ${role}`);
+      if (definition === undefined)
+        throw new Error(`unknown inherited role: ${role}`);
+      if (visiting.has(role))
+        throw new Error(`role inheritance cycle includes: ${role}`);
 
       visiting.add(role);
       const permissions = new Set<Permission>(definition.grants ?? []);
       const roles = new Set<Role>([role]);
       for (const parent of definition.inherits ?? []) {
         const inherited = resolve(parent);
-        for (const permission of inherited.permissions) permissions.add(permission);
+        for (const permission of inherited.permissions)
+          permissions.add(permission);
         for (const inheritedRole of inherited.roles) roles.add(inheritedRole);
       }
       visiting.delete(role);
@@ -76,20 +89,38 @@ export class RbacPolicy<Role extends string, Permission extends string> {
     return this.#permissionsByRole.get(role)?.has(permission) ?? false;
   }
 
-  public hasEveryPermission(role: Role, permissions: readonly Permission[]): boolean {
-    return permissions.every((permission) => this.hasPermission(role, permission));
+  public hasEveryPermission(
+    role: Role,
+    permissions: readonly Permission[],
+  ): boolean {
+    return permissions.every((permission) =>
+      this.hasPermission(role, permission),
+    );
   }
 
-  public hasAnyPermission(role: Role, permissions: readonly Permission[]): boolean {
-    return permissions.some((permission) => this.hasPermission(role, permission));
+  public hasAnyPermission(
+    role: Role,
+    permissions: readonly Permission[],
+  ): boolean {
+    return permissions.some((permission) =>
+      this.hasPermission(role, permission),
+    );
   }
 
-  public evaluate(role: Role, permission: Permission): AuthorizationDecision<Role, Permission> {
+  public evaluate(
+    role: Role,
+    permission: Permission,
+  ): AuthorizationDecision<Role, Permission> {
     if (!this.#permissionsByRole.has(role)) {
-      return { authorized: false, role, permission, reason: 'unknown-role' };
+      return { authorized: false, role, permission, reason: "unknown-role" };
     }
     if (!this.hasPermission(role, permission)) {
-      return { authorized: false, role, permission, reason: 'missing-permission' };
+      return {
+        authorized: false,
+        role,
+        permission,
+        reason: "missing-permission",
+      };
     }
     return { authorized: true, role, permission };
   }

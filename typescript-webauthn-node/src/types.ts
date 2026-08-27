@@ -5,21 +5,27 @@ import type {
   PublicKeyCredentialCreationOptionsJSON,
   PublicKeyCredentialRequestOptionsJSON,
   RegistrationResponseJSON,
-} from '@simplewebauthn/server';
+} from "@simplewebauthn/server";
 
 export type WebAuthnTransport = AuthenticatorTransportFuture;
 export type WebAuthnDeviceType = CredentialDeviceType;
 export type WebAuthnRegistrationResponse = RegistrationResponseJSON;
 export type WebAuthnAuthenticationResponse = AuthenticationResponseJSON;
-export type WebAuthnRegistrationOptions = PublicKeyCredentialCreationOptionsJSON;
-export type WebAuthnAuthenticationOptions = PublicKeyCredentialRequestOptionsJSON;
+export type WebAuthnRegistrationOptions =
+  PublicKeyCredentialCreationOptionsJSON;
+export type WebAuthnAuthenticationOptions =
+  PublicKeyCredentialRequestOptionsJSON;
 
 export interface WebAuthnRelyingPartyConfig {
   readonly rpName: string;
   readonly rpId: string;
   readonly expectedOrigin: string | readonly string[];
-  readonly attestation?: 'none' | 'direct' | 'enterprise' | undefined;
-  readonly userVerification?: 'required' | 'preferred' | 'discouraged' | undefined;
+  readonly attestation?: "none" | "direct" | "enterprise" | undefined;
+  readonly userVerification?:
+    | "required"
+    | "preferred"
+    | "discouraged"
+    | undefined;
   readonly timeoutMs?: number | undefined;
 }
 
@@ -32,11 +38,15 @@ export interface GenerateWebAuthnRegistrationOptionsInput {
   readonly userName: string;
   readonly userDisplayName?: string | undefined;
   readonly userId?: Uint8Array | undefined;
-  readonly excludeCredentials?: readonly WebAuthnCredentialDescriptor[] | undefined;
+  readonly excludeCredentials?:
+    | readonly WebAuthnCredentialDescriptor[]
+    | undefined;
 }
 
 export interface GenerateWebAuthnAuthenticationOptionsInput {
-  readonly allowCredentials?: readonly WebAuthnCredentialDescriptor[] | undefined;
+  readonly allowCredentials?:
+    | readonly WebAuthnCredentialDescriptor[]
+    | undefined;
 }
 
 export interface VerifyWebAuthnRegistrationInput {
