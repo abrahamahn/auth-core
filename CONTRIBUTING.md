@@ -24,7 +24,8 @@ pnpm pack --dry-run
 ```
 
 Run the same commands from `typescript-totp/`, `typescript-crypto-node/`,
-`typescript-password-argon2/`, `typescript-jwt-node/`, and `typescript-http/`.
+`typescript-password-argon2/`, `typescript-jwt-node/`, `typescript-http/`,
+`typescript-oauth-node/`, and `typescript-webauthn-node/`.
 
 From `rust/`:
 
@@ -36,4 +37,5 @@ cargo test --all-targets --locked
 cargo package --locked
 ```
 
-Run the same commands from `rust-totp/`, `rust-crypto/`, `rust-password-argon2/`, and `rust-jwt/`.
+Run the same commands from `rust-totp/`, `rust-crypto/`, `rust-password-argon2/`, `rust-jwt/`,
+`rust-oauth/`, and `rust-webauthn/`.

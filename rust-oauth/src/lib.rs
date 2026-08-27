@@ -37,6 +37,7 @@ const APPLE_TOKEN_URL: &str = "https://appleid.apple.com/auth/token";
 const APPLE_KEYS_URL: &str = "https://appleid.apple.com/auth/keys";
 const APPLE_ISSUER: &str = "https://appleid.apple.com";
 const APPLE_CLIENT_SECRET_MAX_SECONDS: u64 = 180 * 24 * 60 * 60;
+const MAX_DATE_MS: u64 = 8_640_000_000_000_000;
 
 /// Supported first-party provider adapter.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -1037,10 +1038,16 @@ pub fn parse_token_response(
             optional_string(&data, "error_description").unwrap_or(error),
         ));
     }
-    let expires_at_ms = optional_u64(&data, "expires_in")
-        .and_then(|seconds| now_ms.checked_add(seconds.checked_mul(1_000)?));
-    let refresh_token_expires_at_ms = optional_u64(&data, "refresh_token_expires_in")
-        .and_then(|seconds| now_ms.checked_add(seconds.checked_mul(1_000)?));
+    if now_ms > MAX_DATE_MS {
+        return Err(OAuthError::provider(
+            provider,
+            OAuthErrorCode::InvalidConfig,
+            "OAuth clock returned an invalid timestamp",
+        ));
+    }
+    let expires_at_ms = optional_expiration_ms(&data, "expires_in", now_ms, provider, code)?;
+    let refresh_token_expires_at_ms =
+        optional_expiration_ms(&data, "refresh_token_expires_in", now_ms, provider, code)?;
     Ok(OAuthTokenSet {
         access_token: required_string(&data, "access_token", provider, code)?,
         token_type: optional_string(&data, "token_type").unwrap_or_else(|| "Bearer".to_owned()),
@@ -1310,8 +1317,38 @@ fn required_string(
     })
 }
 
-fn optional_u64(data: &Map<String, Value>, field: &str) -> Option<u64> {
-    data.get(field).and_then(Value::as_u64)
+fn optional_expiration_ms(
+    data: &Map<String, Value>,
+    field: &str,
+    now_ms: u64,
+    provider: OAuthProvider,
+    code: OAuthErrorCode,
+) -> Result<Option<u64>, OAuthError> {
+    let Some(value) = data.get(field) else {
+        return Ok(None);
+    };
+    if value.is_null() {
+        return Ok(None);
+    }
+    let seconds = value.as_u64().ok_or_else(|| {
+        OAuthError::provider(
+            provider,
+            code,
+            format!("provider response has invalid {field}"),
+        )
+    })?;
+    let expires_at_ms = seconds
+        .checked_mul(1_000)
+        .and_then(|duration_ms| now_ms.checked_add(duration_ms))
+        .filter(|expires_at_ms| *expires_at_ms <= MAX_DATE_MS)
+        .ok_or_else(|| {
+            OAuthError::provider(
+                provider,
+                code,
+                format!("provider response {field} exceeds the supported date range"),
+            )
+        })?;
+    Ok(Some(expires_at_ms))
 }
 
 fn boolish(value: Option<&Value>) -> bool {

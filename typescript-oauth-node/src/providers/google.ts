@@ -73,7 +73,7 @@ export function createGoogleProvider(
     );
     const data = await jsonRecord(response, provider, errorCode);
     tokenError(data, provider, errorCode);
-    return tokenSetFromResponse(data, provider, runtime.nowMs());
+    return tokenSetFromResponse(data, provider, runtime.nowMs(), errorCode);
   }
 
   return {

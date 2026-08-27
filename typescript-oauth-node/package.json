@@ -1,6 +1,6 @@
 {
   "name": "@abrahamahn/auth-oauth-node",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Provider-neutral OAuth 2.0 and OpenID Connect adapters for Auth Core",
   "type": "module",
   "sideEffects": false,

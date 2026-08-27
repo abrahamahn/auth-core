@@ -4,6 +4,10 @@ Rust WebAuthn relying-party adapter for Auth Core, backed by `webauthn-rs`. It s
 passkey registration/authentication ceremonies and exposes serializable browser options,
 server-side ceremony state, and passkeys.
 
+`InMemoryWebauthnCeremonyStore` provides checked, consume-before-verify storage for tests and
+single-process deployments. Distributed deployments must provide an atomic shared store with the
+same single-use behavior.
+
 Applications must store ceremony state server-side, consume it once, enforce global credential-ID
 uniqueness, associate passkeys with their own principals, and persist passkey counter/backup-state
 updates after successful authentication. This crate does not own HTTP routes, users, sessions, or a

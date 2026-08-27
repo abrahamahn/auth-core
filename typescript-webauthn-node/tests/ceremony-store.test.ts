@@ -49,4 +49,29 @@ describe("InMemoryWebAuthnCeremonyStore", () => {
     );
     expect(store.size).toBe(0);
   });
+
+  it("rejects invalid clocks and checked-expiry overflow", () => {
+    const invalidClock = new InMemoryWebAuthnCeremonyStore({
+      ttlMs: 500,
+      now: () => Number.NaN,
+    });
+    expect(() => {
+      invalidClock.put("auth:invalid", {
+        kind: "authentication",
+        challenge: "challenge",
+      });
+    }).toThrow(/clock/u);
+
+    const overflowing = new InMemoryWebAuthnCeremonyStore({
+      ttlMs: 2,
+      now: () => Number.MAX_SAFE_INTEGER - 1,
+    });
+    expect(() => {
+      overflowing.put("auth:overflow", {
+        kind: "authentication",
+        challenge: "challenge",
+      });
+    }).toThrow(/safe integer range/u);
+    expect(overflowing.size).toBe(0);
+  });
 });

@@ -86,6 +86,47 @@ fn google_builds_pkce_exchange_refresh_and_normalizes_identity() {
 }
 
 #[test]
+fn provider_expiries_fail_closed_when_malformed_or_overflowing() {
+    for body in [
+        r#"{"access_token":"access","expires_in":-1}"#,
+        r#"{"access_token":"access","expires_in":1.5}"#,
+        r#"{"access_token":"access","expires_in":9007199254740991}"#,
+    ] {
+        assert_eq!(
+            parse_token_response(OAuthProvider::Google, 200, body, NOW_MS, false)
+                .unwrap_err()
+                .code,
+            OAuthErrorCode::TokenExchangeFailed
+        );
+    }
+
+    assert_eq!(
+        parse_token_response(
+            OAuthProvider::Google,
+            200,
+            r#"{"access_token":"access","expires_in":1}"#,
+            8_640_000_000_000_000,
+            false,
+        )
+        .unwrap_err()
+        .code,
+        OAuthErrorCode::TokenExchangeFailed
+    );
+    assert_eq!(
+        parse_token_response(
+            OAuthProvider::Google,
+            200,
+            r#"{"access_token":"access"}"#,
+            u64::MAX,
+            false,
+        )
+        .unwrap_err()
+        .code,
+        OAuthErrorCode::InvalidConfig
+    );
+}
+
+#[test]
 fn github_and_kakao_select_verified_provider_identity() {
     let github = GithubProvider::new("client", "secret").unwrap();
     let user = github
