@@ -24,7 +24,7 @@ export {
   type PasswordScore,
   type PasswordValidationResult,
   type StrengthResult,
-} from './password.js';
+} from "./password.js";
 export {
   evaluateAccountLockout,
   isLockoutThresholdReached,
@@ -32,7 +32,7 @@ export {
   type AccountLockoutDecision,
   type AccountLockoutFacts,
   type AccountLockoutPolicy,
-} from './lockout.js';
+} from "./lockout.js";
 export {
   classifyRefreshCredential,
   credentialEpochMatches,
@@ -52,10 +52,24 @@ export {
   type RefreshCredentialFacts,
   type SessionBindingDecision,
   type SessionLifetimePolicy,
-} from './session.js';
+} from "./session.js";
 export {
   RbacPolicy,
   type AuthorizationDecision,
   type RoleDefinition,
-} from './authorization.js';
-export { ExpiringReplayGuard, type ExpiringReplayGuardOptions } from './challenge.js';
+} from "./authorization.js";
+export {
+  ExpiringReplayGuard,
+  type ExpiringReplayGuardOptions,
+} from "./challenge.js";
+export type {
+  AuthAuditEvent,
+  AuthAuditPort,
+  AuthNotification,
+  AuthNotificationPort,
+  AuthTransactionPort,
+  OAuthIdentity,
+  OAuthProviderPort,
+  WebAuthnCredentialPort,
+  WebAuthnCredentialRecord,
+} from "./ports.js";

@@ -24,7 +24,7 @@ pnpm pack --dry-run
 ```
 
 Run the same commands from `typescript-totp/`, `typescript-crypto-node/`,
-`typescript-password-argon2/`, and `typescript-jwt-node/`.
+`typescript-password-argon2/`, `typescript-jwt-node/`, and `typescript-http/`.
 
 From `rust/`:
 

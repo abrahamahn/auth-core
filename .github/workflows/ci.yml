@@ -51,6 +51,7 @@ jobs:
           - typescript-crypto-node
           - typescript-password-argon2
           - typescript-jwt-node
+          - typescript-http
     defaults:
       run:
         working-directory: ${{ matrix.directory }}

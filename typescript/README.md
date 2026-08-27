@@ -12,11 +12,13 @@ session behavior without importing an authentication framework or application do
 - credential-epoch checks;
 - session span, idle-window, activity, age, and excess-session eviction calculations;
 - account lockout thresholds, unlock timing, and progressive delay.
+- framework-neutral contracts for transaction, audit, notification, OAuth, and WebAuthn adapters.
 
 ## Does not own
 
-HTTP, cookies, tokens, hashing algorithms, OAuth, WebAuthn transport, persistence, notifications,
-product roles, eligibility, profiles, tenancy, or resource authorization.
+HTTP implementation, cookies, tokens, hashing algorithms, OAuth and WebAuthn provider SDKs,
+persistence implementations, notification delivery, product roles, eligibility, profiles, tenancy,
+or resource authorization.
 
 Strength and crack-time estimates are advisory. Applications must supplement the built-in common
 password screening with their own current breached-password blocklist before accepting a password.

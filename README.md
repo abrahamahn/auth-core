@@ -15,6 +15,7 @@ configuration. Applications keep those policies and adapt their facts into reusa
 - [`rust-totp/`](rust-totp/) — Rust crate `auth-totp`
 - [`typescript-crypto-node/`](typescript-crypto-node/) — npm package
   `@abrahamahn/auth-crypto-node`
+- [`typescript-http/`](typescript-http/) — npm package `@abrahamahn/auth-http`
 - [`rust-crypto/`](rust-crypto/) — Rust crate `auth-crypto`
 - [`typescript-password-argon2/`](typescript-password-argon2/) — npm package
   `@abrahamahn/auth-password-argon2`
@@ -37,12 +38,12 @@ share signed HS256 token vectors.
 
 Ganbate delegates password assessment, session calculations, refresh-credential decisions, account
 lockout, RBAC inheritance, challenge replay protection, TOTP provider behavior, opaque-token
-cryptography, protected-secret envelopes, device fingerprints, Argon2 password hashing, and HS256
-JWT rotation to this repository. Code intentionally left in Ganbate falls into these adapter or
-product categories:
+cryptography, protected-secret envelopes, Argon2 password hashing, HS256 JWT rotation, request
+metadata, and device labeling to this repository. Code intentionally left in Ganbate falls into
+these adapter or product categories:
 
 - OAuth and WebAuthn integrations not yet represented by a dedicated package;
-- HTTP routes, request/response schemas, cookies, and middleware;
+- HTTP route mounting, application request/response schemas, cookie policy, and middleware composition;
 - database queries, transactions, repositories, audit persistence, and notifications;
 - Ganbate roles, permissions, tenancy, terms acceptance, eligibility, and user profiles.
 

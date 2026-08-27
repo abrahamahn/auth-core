@@ -28,3 +28,6 @@ Versioning while allowing breaking API changes during the `0.x` series.
   resistance and shared PHC verification vectors.
 - Independently packaged Node.js and Rust HS256 JWT adapters with expiration validation,
   current/previous-secret rotation, and shared signed-token vectors.
+- A framework-neutral TypeScript HTTP adapter for bounded request metadata, cookie contracts, and
+  coarse device labels.
+- Storage, audit, notification, OAuth, and WebAuthn port contracts in the TypeScript core.
