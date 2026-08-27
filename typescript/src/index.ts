@@ -62,8 +62,27 @@ export {
   ExpiringReplayGuard,
   type ExpiringReplayGuardOptions,
 } from "./challenge.js";
+export {
+  AUTH_AUDIT_EVENT_TYPES,
+  createAuthAuditEvent,
+  isSensitiveAuthAuditMetadataKey,
+  type AuthAuditEvent,
+  type AuthAuditEventType,
+  type AuthAuditFactor,
+  type AuthAuditMetadata,
+  type AuthAuditMetadataValue,
+  type AuthAuditOutcome,
+  type AuthAuditSeverity,
+  type CreateAuthAuditEventInput,
+} from "./audit.js";
+export {
+  evaluateOneTimeCredential,
+  type OneTimeCredentialDecision,
+  type OneTimeCredentialFacts,
+  type OneTimeCredentialPolicy,
+  type OneTimeCredentialRejectionReason,
+} from "./one-time-credential.js";
 export type {
-  AuthAuditEvent,
   AuthAuditPort,
   AuthNotification,
   AuthNotificationPort,

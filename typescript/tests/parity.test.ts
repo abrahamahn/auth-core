@@ -6,6 +6,7 @@ import {
   classifyRefreshCredential,
   credentialEpochMatches,
   evaluateAccountLockout,
+  evaluateOneTimeCredential,
   evaluateSessionBinding,
   isCommonPassword,
   isSessionIdle,
@@ -15,6 +16,7 @@ import {
   sessionIdleWindowMs,
   sessionSpanMs,
   validatePassword,
+  type OneTimeCredentialDecision,
   type RefreshCredentialDecision,
 } from '../src/index.js';
 
@@ -85,6 +87,18 @@ interface ParityVectors {
     readonly remainingMs: number | null;
     readonly lockedUntilMs: number | null;
   }[];
+  readonly oneTimeCredentials: readonly {
+    readonly exists: boolean;
+    readonly nowMs: number;
+    readonly expiresAtMs: number | null;
+    readonly consumedAtMs: number | null;
+    readonly failedAttempts: number;
+    readonly presentedMatches: boolean;
+    readonly maxFailedAttempts: number;
+    readonly decision: string;
+    readonly consume: boolean;
+    readonly resultFailedAttempts: number;
+  }[];
 }
 
 const vectors = JSON.parse(
@@ -95,6 +109,10 @@ function refreshDecisionLabel(decision: RefreshCredentialDecision): string {
   if (decision.kind === 'revoke-family') return `revoke:${decision.reason}`;
   if (decision.kind === 'reject') return `reject:${decision.reason}`;
   return decision.kind;
+}
+
+function oneTimeDecisionLabel(decision: OneTimeCredentialDecision): string {
+  return decision.kind === 'accept' ? 'accept' : `reject:${decision.reason}`;
 }
 
 describe('TypeScript/Rust auth-core parity vectors', () => {
@@ -160,6 +178,15 @@ describe('TypeScript/Rust auth-core parity vectors', () => {
       expect(decision.isLocked ? (decision.lockedUntilMs ?? null) : null).toBe(
         vector.lockedUntilMs,
       );
+    }
+  });
+
+  it('pins one-time credential decisions', () => {
+    for (const vector of vectors.oneTimeCredentials) {
+      const decision = evaluateOneTimeCredential(vector, vector);
+      expect(oneTimeDecisionLabel(decision)).toBe(vector.decision);
+      expect(decision.consume).toBe(vector.consume);
+      expect(decision.failedAttempts).toBe(vector.resultFailedAttempts);
     }
   });
 });

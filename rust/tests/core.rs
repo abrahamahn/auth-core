@@ -1,10 +1,15 @@
+use std::collections::BTreeMap;
+
 use auth_core::{
-    AccountLockoutDecision, AccountLockoutFacts, AccountLockoutPolicy, AuthError,
-    AuthorizationDecision, DEFAULT_PASSWORD_CONFIG, ExpiringReplayGuard, PasswordScore, RbacError,
-    RbacPolicy, RefreshCredentialFacts, RoleDefinition, SessionBindingDecision,
-    credential_epoch_matches, evaluate_account_lockout, evaluate_session_binding,
-    has_repeated_pattern, is_lockout_threshold_reached, is_refresh_retry_eligible,
-    progressive_delay_ms, select_sessions_for_eviction, validate_password,
+    AccountLockoutDecision, AccountLockoutFacts, AccountLockoutPolicy, AuthAuditEvent,
+    AuthAuditEventType, AuthAuditMetadataValue, AuthAuditOutcome, AuthAuditSeverity, AuthError,
+    AuthorizationDecision, DEFAULT_PASSWORD_CONFIG, ExpiringReplayGuard, OneTimeCredentialDecision,
+    OneTimeCredentialFacts, OneTimeCredentialPolicy, OneTimeCredentialRejectionReason,
+    PasswordScore, RbacError, RbacPolicy, RefreshCredentialFacts, RoleDefinition,
+    SessionBindingDecision, credential_epoch_matches, evaluate_account_lockout,
+    evaluate_one_time_credential, evaluate_session_binding, has_repeated_pattern,
+    is_lockout_threshold_reached, is_refresh_retry_eligible, progressive_delay_ms,
+    select_sessions_for_eviction, validate_password,
 };
 
 #[test]
@@ -163,4 +168,64 @@ fn replay_guard_expires_and_clears_challenge_ids() {
         .expect("valid challenge deadline");
     guard.clear();
     assert!(!guard.is_burned(&"active", 1_001));
+}
+
+#[test]
+fn one_time_credential_attempts_are_deterministic() {
+    let decision = evaluate_one_time_credential(
+        OneTimeCredentialFacts {
+            exists: true,
+            now_ms: 10_000,
+            expires_at_ms: Some(20_000),
+            consumed_at_ms: None,
+            failed_attempts: 2,
+            presented_matches: false,
+        },
+        OneTimeCredentialPolicy {
+            max_failed_attempts: 3,
+        },
+    )
+    .expect("valid one-time credential facts");
+    assert_eq!(
+        decision,
+        OneTimeCredentialDecision::Reject {
+            reason: OneTimeCredentialRejectionReason::AttemptsExhausted,
+            consume: true,
+            failed_attempts: 3,
+        }
+    );
+}
+
+#[test]
+fn audit_metadata_rejects_secrets_recursively() {
+    let mut request = BTreeMap::new();
+    request.insert(
+        "authorization".to_owned(),
+        AuthAuditMetadataValue::String("must-not-leak".to_owned()),
+    );
+    let metadata = BTreeMap::from([(
+        "request".to_owned(),
+        AuthAuditMetadataValue::Object(request),
+    )]);
+    assert_eq!(
+        AuthAuditEvent::new(
+            AuthAuditEventType::OauthLoginFailure,
+            AuthAuditSeverity::High,
+            AuthAuditOutcome::Failure,
+            10_000,
+            metadata,
+        ),
+        Err(AuthError::InvalidValue(
+            "secret-bearing audit metadata key is not permitted"
+        ))
+    );
+
+    let valid = AuthAuditEvent::new(
+        AuthAuditEventType::OauthLoginSuccess,
+        AuthAuditSeverity::Low,
+        AuthAuditOutcome::Success,
+        10_000,
+        BTreeMap::from([("tokenCount".to_owned(), AuthAuditMetadataValue::Number(2.0))]),
+    );
+    assert!(valid.is_ok());
 }

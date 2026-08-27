@@ -4,19 +4,30 @@
 //! and lockout decisions. Transport, cryptography, persistence, and product authorization stay
 //! outside the core.
 
+mod audit;
 mod authorization;
 mod challenge;
 mod error;
 mod lockout;
+mod one_time_credential;
 mod password;
 mod session;
 
+pub use audit::{
+    AuthAuditEvent, AuthAuditEventType, AuthAuditFactor, AuthAuditMetadata, AuthAuditMetadataValue,
+    AuthAuditOutcome, AuthAuditSeverity, is_sensitive_auth_audit_metadata_key,
+    validate_auth_audit_metadata,
+};
 pub use authorization::{AuthorizationDecision, RbacError, RbacPolicy, RoleDefinition};
 pub use challenge::ExpiringReplayGuard;
 pub use error::{AuthError, AuthResult};
 pub use lockout::{
     AccountLockoutDecision, AccountLockoutFacts, AccountLockoutPolicy, evaluate_account_lockout,
     is_lockout_threshold_reached, progressive_delay_ms,
+};
+pub use one_time_credential::{
+    OneTimeCredentialDecision, OneTimeCredentialFacts, OneTimeCredentialPolicy,
+    OneTimeCredentialRejectionReason, evaluate_one_time_credential,
 };
 pub use password::{
     BasicPasswordValidationResult, COMMON_PASSWORDS, DEFAULT_PASSWORD_CONFIG, KEYBOARD_PATTERNS,

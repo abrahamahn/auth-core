@@ -1,10 +1,12 @@
 use auth_core::{
     AccountLockoutDecision, AccountLockoutFacts, AccountLockoutPolicy, DEFAULT_PASSWORD_CONFIG,
-    RefreshCredentialDecision, RefreshCredentialFacts, SessionBindingDecision,
-    SessionLifetimePolicy, classify_refresh_credential, credential_epoch_matches,
-    evaluate_account_lockout, evaluate_session_binding, is_common_password, is_session_idle,
-    progressive_delay_ms, select_sessions_for_eviction, session_idle_remaining_ms,
-    session_idle_window_ms, session_span_ms, validate_password,
+    OneTimeCredentialDecision, OneTimeCredentialFacts, OneTimeCredentialPolicy,
+    OneTimeCredentialRejectionReason, RefreshCredentialDecision, RefreshCredentialFacts,
+    SessionBindingDecision, SessionLifetimePolicy, classify_refresh_credential,
+    credential_epoch_matches, evaluate_account_lockout, evaluate_one_time_credential,
+    evaluate_session_binding, is_common_password, is_session_idle, progressive_delay_ms,
+    select_sessions_for_eviction, session_idle_remaining_ms, session_idle_window_ms,
+    session_span_ms, validate_password,
 };
 use serde_json::Value;
 
@@ -44,6 +46,32 @@ fn binding_label(decision: SessionBindingDecision) -> &'static str {
         SessionBindingDecision::NotChecked => "not-checked",
         SessionBindingDecision::Match => "match",
         SessionBindingDecision::Mismatch => "mismatch",
+    }
+}
+
+fn one_time_decision_label(decision: OneTimeCredentialDecision) -> &'static str {
+    match decision {
+        OneTimeCredentialDecision::Accept { .. } => "accept",
+        OneTimeCredentialDecision::Reject {
+            reason: OneTimeCredentialRejectionReason::NotFound,
+            ..
+        } => "reject:not-found",
+        OneTimeCredentialDecision::Reject {
+            reason: OneTimeCredentialRejectionReason::AlreadyConsumed,
+            ..
+        } => "reject:already-consumed",
+        OneTimeCredentialDecision::Reject {
+            reason: OneTimeCredentialRejectionReason::Expired,
+            ..
+        } => "reject:expired",
+        OneTimeCredentialDecision::Reject {
+            reason: OneTimeCredentialRejectionReason::Mismatch,
+            ..
+        } => "reject:mismatch",
+        OneTimeCredentialDecision::Reject {
+            reason: OneTimeCredentialRejectionReason::AttemptsExhausted,
+            ..
+        } => "reject:attempts-exhausted",
     }
 }
 
@@ -238,5 +266,48 @@ fn lockout_vectors_match_typescript() {
             optional_number(vector, "lockedUntilMs"),
             "lockout deadline"
         );
+    }
+}
+
+#[test]
+fn one_time_credential_vectors_match_typescript() {
+    let vectors = vectors();
+    for vector in vectors["oneTimeCredentials"]
+        .as_array()
+        .expect("one-time credential vectors")
+    {
+        let decision = evaluate_one_time_credential(
+            OneTimeCredentialFacts {
+                exists: vector["exists"].as_bool().expect("exists"),
+                now_ms: number(vector, "nowMs"),
+                expires_at_ms: optional_number(vector, "expiresAtMs"),
+                consumed_at_ms: optional_number(vector, "consumedAtMs"),
+                failed_attempts: unsigned(vector, "failedAttempts"),
+                presented_matches: vector["presentedMatches"]
+                    .as_bool()
+                    .expect("presented matches"),
+            },
+            OneTimeCredentialPolicy {
+                max_failed_attempts: unsigned(vector, "maxFailedAttempts"),
+            },
+        )
+        .expect("valid one-time credential vector");
+        let (consume, failed_attempts) = match decision {
+            OneTimeCredentialDecision::Accept {
+                consume,
+                failed_attempts,
+            }
+            | OneTimeCredentialDecision::Reject {
+                consume,
+                failed_attempts,
+                ..
+            } => (consume, failed_attempts),
+        };
+        assert_eq!(
+            one_time_decision_label(decision),
+            vector["decision"].as_str().expect("decision")
+        );
+        assert_eq!(consume, vector["consume"].as_bool().expect("consume"));
+        assert_eq!(failed_attempts, unsigned(vector, "resultFailedAttempts"));
     }
 }

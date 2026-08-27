@@ -12,6 +12,8 @@ session behavior without importing an authentication framework or application do
 - credential-epoch checks;
 - session span, idle-window, activity, age, and excess-session eviction calculations;
 - account lockout thresholds, unlock timing, and progressive delay.
+- one-time credential acceptance, expiry, consumption, and attempt-exhaustion decisions;
+- typed immutable authentication audit events with recursive secret-metadata rejection;
 - framework-neutral contracts for transaction, audit, notification, OAuth, and WebAuthn adapters.
 
 ## Does not own

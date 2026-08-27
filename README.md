@@ -1,9 +1,10 @@
 # auth-core
 
 `auth-core` is a modular authentication foundation. Its pure TypeScript and Rust core packages own
-password assessment, session and refresh-credential decisions, account lockout, reusable RBAC
-mechanics, and short-lived challenge replay protection. Separate provider packages own optional
-authentication mechanisms without pulling their dependencies into the pure core.
+password assessment, session and refresh-credential decisions, one-time credential consumption,
+account lockout, reusable RBAC mechanics, typed secret-safe audit events, and short-lived challenge
+replay protection. Separate provider packages own optional authentication mechanisms without
+pulling their dependencies into the pure core.
 
 It deliberately does not own product role names or permission assignments, HTTP route mounting,
 database schemas, eligibility, terms, notification wording, user profiles, or application
@@ -32,7 +33,8 @@ configuration. Applications keep those policies and adapt their facts into reusa
 Both core implementations expose the same deterministic decisions using language-idiomatic names
 and types. The shared vectors pin password outcomes, refresh rotation and reuse, session binding,
 credential epochs, session lifetime and eviction, idle handling, progressive delay, and account
-lockout. The TOTP packages share RFC 6238 vectors across TypeScript and Rust. The crypto adapter
+lockout, plus one-time credential acceptance and attempt exhaustion. The TOTP packages share RFC
+6238 vectors across TypeScript and Rust. The crypto adapter
 packages share opaque-token digests, device fingerprints, and a byte-compatible authenticated
 secret-envelope format. The Argon2 packages share PHC verification vectors, the JWT packages share
 signed HS256 token vectors, and the OAuth packages share normalized token, identity, PKCE, and
@@ -41,10 +43,11 @@ protected-state contracts.
 ## Ganbate extraction boundary
 
 Ganbate delegates password assessment, session calculations, refresh-credential decisions, account
-lockout, RBAC inheritance, challenge replay protection, TOTP and OAuth provider behavior, opaque-token
-cryptography, protected-secret envelopes, CSRF token protection, Argon2 password hashing, HS256 JWT
-rotation, request metadata, and device labeling to this repository. Code intentionally left in
-Ganbate falls into these adapter or product categories:
+lockout, one-time credential decisions, RBAC inheritance, challenge replay protection, typed audit
+event contracts, TOTP and OAuth provider behavior, opaque-token cryptography, protected-secret
+envelopes, CSRF token protection, Argon2 password hashing, HS256 JWT rotation, request metadata, and
+device labeling to this repository. Code intentionally left in Ganbate falls into these adapter or
+product categories:
 
 - WebAuthn integrations not yet represented by a dedicated package;
 - HTTP route mounting, application request/response schemas, cookie policy, and middleware composition;

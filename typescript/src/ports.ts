@@ -1,16 +1,10 @@
+import type { AuthAuditEvent } from "./audit.js";
+
 /** Unit-of-work boundary used by storage adapters. */
 export interface AuthTransactionPort<Transaction> {
   run<Result>(
     operation: (transaction: Transaction) => Promise<Result>,
   ): Promise<Result>;
-}
-
-export interface AuthAuditEvent {
-  readonly type: string;
-  readonly subjectId?: string | undefined;
-  readonly actorId?: string | undefined;
-  readonly occurredAt: Date;
-  readonly metadata?: Readonly<Record<string, unknown>> | undefined;
 }
 
 export interface AuthAuditPort {

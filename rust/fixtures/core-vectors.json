@@ -251,5 +251,79 @@
       "remainingMs": null,
       "lockedUntilMs": null
     }
+  ],
+  "oneTimeCredentials": [
+    {
+      "exists": false,
+      "nowMs": 10000,
+      "expiresAtMs": null,
+      "consumedAtMs": null,
+      "failedAttempts": 0,
+      "presentedMatches": false,
+      "maxFailedAttempts": 3,
+      "decision": "reject:not-found",
+      "consume": false,
+      "resultFailedAttempts": 0
+    },
+    {
+      "exists": true,
+      "nowMs": 10000,
+      "expiresAtMs": 20000,
+      "consumedAtMs": 9000,
+      "failedAttempts": 0,
+      "presentedMatches": true,
+      "maxFailedAttempts": 3,
+      "decision": "reject:already-consumed",
+      "consume": false,
+      "resultFailedAttempts": 0
+    },
+    {
+      "exists": true,
+      "nowMs": 20000,
+      "expiresAtMs": 20000,
+      "consumedAtMs": null,
+      "failedAttempts": 0,
+      "presentedMatches": true,
+      "maxFailedAttempts": 3,
+      "decision": "reject:expired",
+      "consume": false,
+      "resultFailedAttempts": 0
+    },
+    {
+      "exists": true,
+      "nowMs": 10000,
+      "expiresAtMs": 20000,
+      "consumedAtMs": null,
+      "failedAttempts": 0,
+      "presentedMatches": true,
+      "maxFailedAttempts": 3,
+      "decision": "accept",
+      "consume": true,
+      "resultFailedAttempts": 0
+    },
+    {
+      "exists": true,
+      "nowMs": 10000,
+      "expiresAtMs": 20000,
+      "consumedAtMs": null,
+      "failedAttempts": 1,
+      "presentedMatches": false,
+      "maxFailedAttempts": 3,
+      "decision": "reject:mismatch",
+      "consume": false,
+      "resultFailedAttempts": 2
+    },
+    {
+      "exists": true,
+      "nowMs": 10000,
+      "expiresAtMs": 20000,
+      "consumedAtMs": null,
+      "failedAttempts": 2,
+      "presentedMatches": false,
+      "maxFailedAttempts": 3,
+      "decision": "reject:attempts-exhausted",
+      "consume": true,
+      "resultFailedAttempts": 3
+    }
   ]
 }

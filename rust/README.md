@@ -3,7 +3,7 @@
 `auth-core` is a dependency-free Rust library for deterministic authentication decisions. It
 matches the repository's TypeScript package across password assessment, refresh-credential
 classification, session lifetime and eviction, session binding, credential epochs, account
-lockout, and progressive delay.
+lockout, progressive delay, one-time credential decisions, and secret-safe audit event contracts.
 
 It deliberately excludes HTTP, cookies, JWTs, password hashing, OAuth/WebAuthn providers,
 persistence, product roles, authorization policy, notifications, and device presentation.
