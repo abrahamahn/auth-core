@@ -12,6 +12,8 @@ export interface ProviderRuntime {
   readonly nowMs: () => number;
 }
 
+const MAX_DATE_MS = 8_640_000_000_000_000;
+
 export function providerRuntime(runtime: OAuthRuntime = {}): ProviderRuntime {
   return {
     fetch: runtime.fetch ?? globalThis.fetch,
@@ -104,9 +106,46 @@ export function optionalNumber(
   field: string,
 ): number | undefined {
   const value = record[field];
-  return typeof value === "number" && Number.isFinite(value) && value >= 0
+  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0
     ? value
     : undefined;
+}
+
+function optionalDurationSeconds(
+  record: Record<string, unknown>,
+  field: string,
+  provider: OAuthProvider,
+  code: OAuthErrorCode,
+): number | undefined {
+  const value = record[field];
+  if (value === undefined || value === null) return undefined;
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 0) {
+    throw new OAuthError(
+      `Provider response has invalid ${field}`,
+      provider,
+      code,
+    );
+  }
+  return value;
+}
+
+function expirationDate(
+  nowMs: number,
+  seconds: number | undefined,
+  field: string,
+  provider: OAuthProvider,
+  code: OAuthErrorCode,
+): Date | undefined {
+  if (seconds === undefined) return undefined;
+  const expiresAtMs = nowMs + seconds * 1_000;
+  if (!Number.isSafeInteger(expiresAtMs) || expiresAtMs > MAX_DATE_MS) {
+    throw new OAuthError(
+      `Provider response ${field} exceeds the supported date range`,
+      provider,
+      code,
+    );
+  }
+  return new Date(expiresAtMs);
 }
 
 export function accessToken(tokens: OAuthTokenSet | string): string {
@@ -117,14 +156,39 @@ export function tokenSetFromResponse(
   record: Record<string, unknown>,
   provider: OAuthProvider,
   nowMs: number,
+  code: OAuthErrorCode,
 ): OAuthTokenSet {
+  if (!Number.isSafeInteger(nowMs) || nowMs < 0 || nowMs > MAX_DATE_MS) {
+    throw new OAuthError(
+      "OAuth clock returned an invalid timestamp",
+      provider,
+      "INVALID_CONFIG",
+    );
+  }
   const accessTokenValue = requiredString(record, "access_token", provider);
   const tokenType = optionalString(record, "token_type") ?? "Bearer";
   const refreshToken = optionalString(record, "refresh_token");
   const idToken = optionalString(record, "id_token");
   const scope = optionalString(record, "scope");
-  const expiresIn = optionalNumber(record, "expires_in");
-  const refreshExpiresIn = optionalNumber(record, "refresh_token_expires_in");
+  const expiresAt = expirationDate(
+    nowMs,
+    optionalDurationSeconds(record, "expires_in", provider, code),
+    "expires_in",
+    provider,
+    code,
+  );
+  const refreshTokenExpiresAt = expirationDate(
+    nowMs,
+    optionalDurationSeconds(
+      record,
+      "refresh_token_expires_in",
+      provider,
+      code,
+    ),
+    "refresh_token_expires_in",
+    provider,
+    code,
+  );
 
   return {
     accessToken: accessTokenValue,
@@ -132,12 +196,8 @@ export function tokenSetFromResponse(
     ...(refreshToken === undefined ? {} : { refreshToken }),
     ...(idToken === undefined ? {} : { idToken }),
     ...(scope === undefined ? {} : { scope }),
-    ...(expiresIn === undefined
-      ? {}
-      : { expiresAt: new Date(nowMs + expiresIn * 1_000) }),
-    ...(refreshExpiresIn === undefined
-      ? {}
-      : { refreshTokenExpiresAt: new Date(nowMs + refreshExpiresIn * 1_000) }),
+    ...(expiresAt === undefined ? {} : { expiresAt }),
+    ...(refreshTokenExpiresAt === undefined ? {} : { refreshTokenExpiresAt }),
   };
 }
 

@@ -94,6 +94,56 @@ describe("Google provider", () => {
     expect(refreshBody.get("client_secret")).toBe("google-secret");
     expect(refreshBody.get("refresh_token")).toBe("stored-refresh");
   });
+
+  it.each([[-1], [1.5], [Number.MAX_SAFE_INTEGER]])(
+    "rejects malformed provider expiry %s instead of treating it as unbounded",
+    async (expiresIn) => {
+      const provider = createGoogleProvider({
+        clientId: "google-client",
+        clientSecret: "google-secret",
+        fetch: vi
+          .fn<typeof fetch>()
+          .mockResolvedValue(
+            jsonResponse({ access_token: "access", expires_in: expiresIn }),
+          ),
+        nowMs: () => NOW,
+      });
+
+      await expect(
+        provider.exchangeCode("code", "https://app.example/callback"),
+      ).rejects.toMatchObject({
+        code: "TOKEN_EXCHANGE_FAILED",
+        provider: "google",
+      });
+    },
+  );
+
+  it("rejects invalid clocks and overflowing provider expiries", async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockImplementation(() =>
+        Promise.resolve(jsonResponse({ access_token: "access", expires_in: 1 })),
+      );
+    const overflow = createGoogleProvider({
+      clientId: "google-client",
+      clientSecret: "google-secret",
+      fetch: fetchMock,
+      nowMs: () => 8_640_000_000_000_000,
+    });
+    await expect(
+      overflow.exchangeCode("code", "https://app.example/callback"),
+    ).rejects.toMatchObject({ code: "TOKEN_EXCHANGE_FAILED" });
+
+    const invalidClock = createGoogleProvider({
+      clientId: "google-client",
+      clientSecret: "google-secret",
+      fetch: fetchMock,
+      nowMs: () => Number.MAX_SAFE_INTEGER,
+    });
+    await expect(
+      invalidClock.exchangeCode("code", "https://app.example/callback"),
+    ).rejects.toMatchObject({ code: "INVALID_CONFIG" });
+  });
 });
 
 describe("GitHub provider", () => {

@@ -51,13 +51,17 @@ export class InMemoryWebAuthnCeremonyStore implements WebAuthnCeremonyStore {
     if (key === "") throw new RangeError("ceremony key must not be empty");
     if (ceremony.challenge === "")
       throw new RangeError("ceremony challenge must not be empty");
-    const nowMs = this.#now();
+    const nowMs = this.#readNow();
     this.prune(nowMs);
+    const expiresAtMs = nowMs + this.#ttlMs;
+    if (!Number.isSafeInteger(expiresAtMs)) {
+      throw new RangeError("ceremony expiry exceeds the safe integer range");
+    }
     this.#entries.set(
       key,
       Object.freeze({
         ...ceremony,
-        expiresAtMs: nowMs + this.#ttlMs,
+        expiresAtMs,
       }),
     );
   }
@@ -71,7 +75,7 @@ export class InMemoryWebAuthnCeremonyStore implements WebAuthnCeremonyStore {
         "WebAuthn ceremony was not found",
       );
     }
-    if (ceremony.expiresAtMs <= this.#now()) {
+    if (ceremony.expiresAtMs <= this.#readNow()) {
       throw new AuthWebAuthnError(
         "ceremony-expired",
         "WebAuthn ceremony has expired",
@@ -86,7 +90,8 @@ export class InMemoryWebAuthnCeremonyStore implements WebAuthnCeremonyStore {
     return ceremony;
   }
 
-  prune(nowMs: number = this.#now()): number {
+  prune(nowMs: number = this.#readNow()): number {
+    this.#validateNow(nowMs);
     let removed = 0;
     for (const [key, ceremony] of this.#entries) {
       if (ceremony.expiresAtMs <= nowMs) {
@@ -103,6 +108,20 @@ export class InMemoryWebAuthnCeremonyStore implements WebAuthnCeremonyStore {
 
   get size(): number {
     return this.#entries.size;
+  }
+
+  #readNow(): number {
+    const nowMs = this.#now();
+    this.#validateNow(nowMs);
+    return nowMs;
+  }
+
+  #validateNow(nowMs: number): void {
+    if (!Number.isSafeInteger(nowMs) || nowMs < 0) {
+      throw new RangeError(
+        "ceremony clock must return a non-negative safe integer",
+      );
+    }
   }
 }
 

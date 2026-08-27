@@ -8,6 +8,13 @@
 
 use std::time::Duration;
 
+mod ceremony_store;
+
+pub use ceremony_store::{
+    InMemoryWebauthnCeremonyStore, WebauthnCeremony, WebauthnCeremonyKind,
+    WebauthnCeremonyStoreError,
+};
+
 pub use url::Url;
 pub use uuid::Uuid;
 pub use webauthn_rs::prelude::{

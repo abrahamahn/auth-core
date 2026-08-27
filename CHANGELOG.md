@@ -7,6 +7,12 @@ Versioning while allowing breaking API changes during the `0.x` series.
 
 ### Fixed
 
+- OAuth token responses now reject malformed or overflowing expiry fields instead of silently
+  treating affected credentials as having no expiry, with matching TypeScript and Rust behavior.
+- TypeScript WebAuthn ceremony storage now validates its injected clock and rejects expiry
+  overflow before storing state.
+- Rust WebAuthn now includes a single-process, single-use ceremony-state store with checked expiry
+  arithmetic and consume-before-verify semantics matching the TypeScript contract.
 - Repeated full-password patterns can no longer gain an authoritative score from length alone.
 - Crack-time feedback now reflects pattern penalties instead of displaying raw character-set math.
 - Common and repeated password values produce explicit validation failures in both languages.
