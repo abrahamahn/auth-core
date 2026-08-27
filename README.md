@@ -26,6 +26,9 @@ configuration. Applications keep those policies and adapt their facts into reusa
 - [`typescript-oauth-node/`](typescript-oauth-node/) — npm package
   `@abrahamahn/auth-oauth-node`
 - [`rust-oauth/`](rust-oauth/) — Rust crate `auth-oauth`
+- [`typescript-webauthn-node/`](typescript-webauthn-node/) — npm package
+  `@abrahamahn/auth-webauthn-node`
+- [`rust-webauthn/`](rust-webauthn/) — Rust crate `auth-webauthn`
 - [`rust/fixtures/`](rust/fixtures/) — shared cross-language behavior vectors
 
 ## Cross-language contract
@@ -38,20 +41,20 @@ lockout, plus one-time credential acceptance and attempt exhaustion. The TOTP pa
 packages share opaque-token digests, device fingerprints, and a byte-compatible authenticated
 secret-envelope format. The Argon2 packages share PHC verification vectors, the JWT packages share
 signed HS256 token vectors, and the OAuth packages share normalized token, identity, PKCE, and
-protected-state contracts.
+protected-state contracts. The WebAuthn packages expose language-idiomatic, standard-compatible
+relying-party registration/authentication ceremonies and require single-use server-side state.
 
 ## Ganbate extraction boundary
 
 Ganbate delegates password assessment, session calculations, refresh-credential decisions, account
 lockout, one-time credential decisions, RBAC inheritance, challenge replay protection, typed audit
-event contracts, TOTP and OAuth provider behavior, opaque-token cryptography, protected-secret
-envelopes, CSRF token protection, Argon2 password hashing, HS256 JWT rotation, request metadata, and
-device labeling to this repository. Code intentionally left in Ganbate falls into these adapter or
-product categories:
+event contracts, TOTP, OAuth, and WebAuthn provider behavior, opaque-token cryptography,
+protected-secret envelopes, CSRF token protection, Argon2 password hashing, HS256 JWT rotation,
+request metadata, and device labeling to this repository. Code intentionally left in Ganbate falls
+into these adapter or product categories:
 
-- WebAuthn integrations not yet represented by a dedicated package;
 - HTTP route mounting, application request/response schemas, cookie policy, and middleware composition;
-- database queries, transactions, repositories, audit persistence, and notifications;
+- database queries, transactions, credential/ceremony repositories, audit persistence, and notifications;
 - Ganbate roles, permissions, tenancy, terms acceptance, eligibility, and user profiles.
 
 Those modules may become dedicated adapters or providers, but they do not belong in the pure core.

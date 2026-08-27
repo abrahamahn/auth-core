@@ -26,6 +26,8 @@ jobs:
             artifact: auth-jwt-0.1.0
           - directory: rust-oauth
             artifact: auth-oauth-0.1.0
+          - directory: rust-webauthn
+            artifact: auth-webauthn-0.1.0
     defaults:
       run:
         working-directory: ${{ matrix.package.directory }}
@@ -55,6 +57,7 @@ jobs:
           - typescript-jwt-node
           - typescript-http
           - typescript-oauth-node
+          - typescript-webauthn-node
     defaults:
       run:
         working-directory: ${{ matrix.directory }}

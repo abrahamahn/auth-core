@@ -36,3 +36,8 @@ Versioning while allowing breaking API changes during the `0.x` series.
 - Independently packaged Node.js and Rust OAuth adapters for Google, GitHub, Kakao, and Apple with
   normalized token/identity contracts, credentialed refresh, PKCE, generic protected state, Apple
   client assertions, and verified Apple identity tokens.
+- Cross-language one-time credential acceptance, expiry, consumption, and attempt-exhaustion
+  decisions plus typed, immutable, secret-safe authentication audit events.
+- Independently packaged Node.js and Rust WebAuthn relying-party adapters for passkey registration
+  and authentication, strict origin/RP validation, single-use ceremony state, browser-response
+  normalization, and persistence-neutral credential results.

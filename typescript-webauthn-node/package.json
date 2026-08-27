@@ -1,0 +1,45 @@
+{
+  "name": "@abrahamahn/auth-webauthn-node",
+  "version": "0.1.0",
+  "description": "WebAuthn relying-party ceremonies and verification adapters for Auth Core",
+  "type": "module",
+  "sideEffects": false,
+  "license": "MIT",
+  "author": "Abraham Joongwhan Ahn",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/abrahamahn/auth-core.git",
+    "directory": "typescript-webauthn-node"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "src", "README.md", "LICENSE"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.test.json --noEmit",
+    "type-check": "pnpm typecheck",
+    "lint": "eslint src tests --max-warnings 0",
+    "test": "vitest run",
+    "prepack": "npm run build && npm run typecheck && npm run lint && npm test"
+  },
+  "dependencies": {
+    "@simplewebauthn/server": "^13.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.9",
+    "eslint": "^9.39.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.53.1",
+    "vitest": "^4.1.8"
+  },
+  "engines": { "node": ">=24.13" },
+  "publishConfig": { "access": "public" },
+  "packageManager": "pnpm@10.26.2"
+}
