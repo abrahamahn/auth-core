@@ -16,5 +16,12 @@
     "plaintext": "refresh-token-value",
     "encryptionKey": "test-envelope-key-0123456789abcdef",
     "envelope": "AAECAwQFBgcICQoLDA0ODw==:EBESExQVFhcYGRob:ie5aBtpfi4xNTaZnKckuzw==:VTOET6nZScQxZ1ij43/xPBPTMQ=="
+  },
+  "csrf": {
+    "token": "csrf-token-fixed-vector",
+    "secret": "csrf-secret-fixed-vector-0123456789",
+    "signedToken": "csrf-token-fixed-vector.xEFmD7sQu7j69AQ0Q-inFkvGYCiDumQ0TF7VwRud2aU",
+    "iv": "AAECAwQFBgcICQoLDA0ODw",
+    "encryptedToken": "AAECAwQFBgcICQoLDA0ODw.n-P0J_7rV8PhT4KkHiGXghJt7YNjXR1PQnnvbZFRuSEv0Kl14mtI4lxhHgaDbzC00yAIA5j890lmBP7TJXYXC0wOZA.CVpuXZl_CLl6_uR-UfCiGA"
   }
 }

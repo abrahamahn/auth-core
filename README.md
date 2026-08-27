@@ -38,9 +38,9 @@ share signed HS256 token vectors.
 
 Ganbate delegates password assessment, session calculations, refresh-credential decisions, account
 lockout, RBAC inheritance, challenge replay protection, TOTP provider behavior, opaque-token
-cryptography, protected-secret envelopes, Argon2 password hashing, HS256 JWT rotation, request
-metadata, and device labeling to this repository. Code intentionally left in Ganbate falls into
-these adapter or product categories:
+cryptography, protected-secret envelopes, CSRF token protection, Argon2 password hashing, HS256 JWT
+rotation, request metadata, and device labeling to this repository. Code intentionally left in
+Ganbate falls into these adapter or product categories:
 
 - OAuth and WebAuthn integrations not yet represented by a dedicated package;
 - HTTP route mounting, application request/response schemas, cookie policy, and middleware composition;

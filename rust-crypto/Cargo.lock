@@ -44,9 +44,11 @@ dependencies = [
  "aes-gcm",
  "base64",
  "getrandom 0.3.4",
+ "hmac",
  "scrypt",
  "serde_json",
  "sha2",
+ "subtle",
 ]
 
 [[package]]

@@ -31,3 +31,5 @@ Versioning while allowing breaking API changes during the `0.x` series.
 - A framework-neutral TypeScript HTTP adapter for bounded request metadata, cookie contracts, and
   coarse device labels.
 - Storage, audit, notification, OAuth, and WebAuthn port contracts in the TypeScript core.
+- Cross-language HMAC signing, AES-GCM cookie protection, and constant-time double-submit
+  validation for CSRF tokens, preserving Ganbate's existing wire formats.

@@ -3,16 +3,23 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import {
+  CSRF_TOKEN_BYTES,
   contextualDeviceFingerprint,
+  decryptCsrfToken,
   decryptSecret,
+  encryptCsrfToken,
   encryptSecret,
   generateBase64UrlToken,
   generateHexToken,
   generateNumericCode,
   generateOpaqueToken,
+  generateCsrfToken,
   isSecretEnvelope,
   sha256TokenDigest,
+  signCsrfToken,
   stableDeviceFingerprint,
+  validateCsrfToken,
+  verifySignedCsrfToken,
 } from "../src/index.js";
 
 interface CryptoVectors {
@@ -31,6 +38,12 @@ interface CryptoVectors {
     readonly plaintext: string;
     readonly encryptionKey: string;
     readonly envelope: string;
+  };
+  readonly csrf: {
+    readonly token: string;
+    readonly secret: string;
+    readonly signedToken: string;
+    readonly encryptedToken: string;
   };
 }
 
@@ -101,5 +114,63 @@ describe("device fingerprints", () => {
         vectors.fingerprints.userAgent,
       ),
     ).toBe(vectors.fingerprints.contextual);
+  });
+});
+
+describe("CSRF token protection", () => {
+  it("matches the shared signing and encrypted-envelope vectors", () => {
+    expect(signCsrfToken(vectors.csrf.token, vectors.csrf.secret)).toBe(
+      vectors.csrf.signedToken,
+    );
+    expect(
+      verifySignedCsrfToken(vectors.csrf.signedToken, vectors.csrf.secret),
+    ).toEqual({
+      valid: true,
+      token: vectors.csrf.token,
+    });
+    expect(
+      decryptCsrfToken(vectors.csrf.encryptedToken, vectors.csrf.secret),
+    ).toBe(vectors.csrf.signedToken);
+  });
+
+  it("round-trips encrypted and signed double-submit tokens", () => {
+    const token = generateCsrfToken();
+    expect(Buffer.from(token, "base64url")).toHaveLength(CSRF_TOKEN_BYTES);
+    const cookie = encryptCsrfToken(
+      signCsrfToken(token, vectors.csrf.secret),
+      vectors.csrf.secret,
+    );
+    expect(
+      validateCsrfToken(cookie, token, {
+        secret: vectors.csrf.secret,
+        encrypted: true,
+        signed: true,
+      }),
+    ).toBe(true);
+    expect(
+      validateCsrfToken(cookie, `${token}x`, {
+        secret: vectors.csrf.secret,
+        encrypted: true,
+        signed: true,
+      }),
+    ).toBe(false);
+  });
+
+  it("rejects malformed, tampered, and misconfigured inputs", () => {
+    expect(verifySignedCsrfToken("unsigned", vectors.csrf.secret)).toEqual({
+      valid: false,
+      token: null,
+    });
+    expect(
+      decryptCsrfToken(`${vectors.csrf.encryptedToken}x`, vectors.csrf.secret),
+    ).toBeNull();
+    expect(
+      validateCsrfToken(undefined, vectors.csrf.token, {
+        secret: vectors.csrf.secret,
+      }),
+    ).toBe(false);
+    expect(() => signCsrfToken(vectors.csrf.token, "")).toThrow(
+      "secret must not be empty",
+    );
   });
 });
