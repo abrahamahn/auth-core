@@ -1,13 +1,16 @@
 import type {
   AuthenticationResponseJSON,
-  AuthenticatorTransportFuture,
+  AuthenticatorTransport,
   CredentialDeviceType,
   PublicKeyCredentialCreationOptionsJSON,
   PublicKeyCredentialRequestOptionsJSON,
   RegistrationResponseJSON,
 } from "@simplewebauthn/server";
 
-export type WebAuthnTransport = AuthenticatorTransportFuture;
+export type WebAuthnTransport =
+  | AuthenticatorTransport
+  | "cable"
+  | "smart-card";
 export type WebAuthnDeviceType = CredentialDeviceType;
 export type WebAuthnRegistrationResponse = RegistrationResponseJSON;
 export type WebAuthnAuthenticationResponse = AuthenticationResponseJSON;

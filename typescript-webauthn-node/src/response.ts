@@ -2,13 +2,13 @@ import type {
   AuthenticationExtensionsClientOutputs,
   AuthenticationResponseJSON,
   AuthenticatorAttachment,
-  AuthenticatorTransportFuture,
   RegistrationResponseJSON,
 } from "@simplewebauthn/server";
 
 import { AuthWebAuthnError } from "./error.js";
+import type { WebAuthnTransport } from "./types.js";
 
-const TRANSPORTS = new Set<AuthenticatorTransportFuture>([
+const TRANSPORTS = new Set<WebAuthnTransport>([
   "ble",
   "cable",
   "hybrid",
@@ -75,7 +75,7 @@ function clientExtensionResults(
 
 function transports(
   value: unknown,
-): AuthenticatorTransportFuture[] | undefined {
+): WebAuthnTransport[] | undefined {
   if (value === undefined) return undefined;
   if (
     !Array.isArray(value) ||
@@ -83,7 +83,7 @@ function transports(
   ) {
     throw invalidResponse("credential transports are invalid");
   }
-  return value as AuthenticatorTransportFuture[];
+  return value as WebAuthnTransport[];
 }
 
 export function parseWebAuthnRegistrationResponse(
@@ -168,7 +168,7 @@ export function parseWebAuthnAuthenticationResponse(
 
 export function readWebAuthnResponseTransports(
   value: unknown,
-): readonly AuthenticatorTransportFuture[] {
+): readonly WebAuthnTransport[] {
   if (!isRecord(value) || !isRecord(value["response"])) return [];
   return transports(value["response"]["transports"]) ?? [];
 }

@@ -32,17 +32,17 @@
     "type-check": "pnpm typecheck",
     "lint": "eslint src tests --max-warnings 0",
     "test": "vitest run",
-    "prepack": "npm run build && npm run typecheck && npm run lint && npm test"
+    "prepack": "pnpm build && pnpm typecheck && pnpm lint && pnpm test"
   },
   "dependencies": {
-    "otpauth": "^9.5.1"
+    "otpauth": "^9.6.0"
   },
   "devDependencies": {
-    "@types/node": "^26.4.0",
-    "eslint": "^9.39.5",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.68.0",
-    "vitest": "^4.1.11"
+    "@types/node": "^26.6.6",
+    "eslint": "^10.14.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.72.1",
+    "vitest": "^5.1.0"
   },
   "engines": {
     "node": ">=24.13"
