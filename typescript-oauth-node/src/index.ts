@@ -1,7 +1,5 @@
-export {
-  createAppleProvider,
-  generateAppleClientSecret,
-} from "./providers/apple.js";
+export { createAppleProvider } from "./providers/apple.js";
+export { generateAppleClientSecret } from "./providers/apple-jwt.js";
 export { createGitHubProvider } from "./providers/github.js";
 export { createGoogleProvider } from "./providers/google.js";
 export { createKakaoProvider } from "./providers/kakao.js";
@@ -9,10 +7,8 @@ export { createPkcePair } from "./pkce.js";
 export { createOAuthStateManager, OAuthStateError } from "./state.js";
 export { OAuthError } from "./types.js";
 
-export type {
-  AppleClientSecretOptions,
-  AppleProviderConfig,
-} from "./providers/apple.js";
+export type { AppleProviderConfig } from "./providers/apple.js";
+export type { AppleClientSecretOptions } from "./providers/apple-jwt.js";
 export type { GitHubProviderConfig } from "./providers/github.js";
 export type { GoogleProviderConfig } from "./providers/google.js";
 export type { KakaoProviderConfig } from "./providers/kakao.js";

@@ -4,10 +4,9 @@ import {
   optionalNumber,
   optionalString,
   providerRuntime,
+  requestFormTokens,
   requireConfig,
   requireOk,
-  tokenError,
-  tokenSetFromResponse,
 } from "../http.js";
 import { OAuthError } from "../types.js";
 
@@ -50,29 +49,6 @@ export function createKakaoProvider(
       provider,
       "INVALID_CONFIG",
     );
-  }
-
-  async function requestTokens(
-    params: URLSearchParams,
-    refresh: boolean,
-  ): Promise<OAuthTokenSet> {
-    const response = await runtime.fetch(TOKEN_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: params.toString(),
-    });
-    const errorCode = refresh
-      ? "TOKEN_REFRESH_FAILED"
-      : "TOKEN_EXCHANGE_FAILED";
-    await requireOk(
-      response,
-      provider,
-      errorCode,
-      refresh ? "Token refresh" : "Code exchange",
-    );
-    const data = await jsonRecord(response, provider, errorCode);
-    tokenError(data, provider, errorCode);
-    return tokenSetFromResponse(data, provider, runtime.nowMs(), errorCode);
   }
 
   function addCredentials(params: URLSearchParams): URLSearchParams {
@@ -120,7 +96,7 @@ export function createKakaoProvider(
       );
       if (options.codeVerifier !== undefined)
         params.set("code_verifier", options.codeVerifier);
-      return requestTokens(params, false);
+      return requestFormTokens(runtime, TOKEN_URL, params, provider, false);
     },
 
     async getUserInfo(tokens: OAuthTokenSet | string): Promise<OAuthUserInfo> {
@@ -177,13 +153,16 @@ export function createKakaoProvider(
     },
 
     refreshToken(refreshToken: string): Promise<OAuthTokenSet> {
-      return requestTokens(
+      return requestFormTokens(
+        runtime,
+        TOKEN_URL,
         addCredentials(
           new URLSearchParams({
             grant_type: "refresh_token",
             refresh_token: refreshToken,
           }),
         ),
+        provider,
         true,
       );
     },

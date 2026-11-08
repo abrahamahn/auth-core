@@ -3,11 +3,10 @@ import {
   jsonRecord,
   optionalString,
   providerRuntime,
+  requestFormTokens,
   requireConfig,
   requiredString,
   requireOk,
-  tokenError,
-  tokenSetFromResponse,
 } from "../http.js";
 import { OAuthError } from "../types.js";
 
@@ -53,29 +52,6 @@ export function createGoogleProvider(
     );
   }
 
-  async function requestTokens(
-    params: URLSearchParams,
-    refresh: boolean,
-  ): Promise<OAuthTokenSet> {
-    const response = await runtime.fetch(TOKEN_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: params.toString(),
-    });
-    const errorCode = refresh
-      ? "TOKEN_REFRESH_FAILED"
-      : "TOKEN_EXCHANGE_FAILED";
-    await requireOk(
-      response,
-      provider,
-      errorCode,
-      refresh ? "Token refresh" : "Code exchange",
-    );
-    const data = await jsonRecord(response, provider, errorCode);
-    tokenError(data, provider, errorCode);
-    return tokenSetFromResponse(data, provider, runtime.nowMs(), errorCode);
-  }
-
   return {
     provider,
 
@@ -118,7 +94,7 @@ export function createGoogleProvider(
       });
       if (options.codeVerifier !== undefined)
         params.set("code_verifier", options.codeVerifier);
-      return requestTokens(params, false);
+      return requestFormTokens(runtime, TOKEN_URL, params, provider, false);
     },
 
     async getUserInfo(tokens: OAuthTokenSet | string): Promise<OAuthUserInfo> {
@@ -145,13 +121,16 @@ export function createGoogleProvider(
     },
 
     refreshToken(refreshToken: string): Promise<OAuthTokenSet> {
-      return requestTokens(
+      return requestFormTokens(
+        runtime,
+        TOKEN_URL,
         new URLSearchParams({
           client_id: clientId,
           client_secret: clientSecret,
           grant_type: "refresh_token",
           refresh_token: refreshToken,
         }),
+        provider,
         true,
       );
     },

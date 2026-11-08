@@ -212,3 +212,27 @@ export function tokenError(
     throw new OAuthError(description ?? error, provider, code);
   }
 }
+
+export async function requestFormTokens(
+  runtime: ProviderRuntime,
+  tokenUrl: string,
+  params: URLSearchParams,
+  provider: OAuthProvider,
+  refresh: boolean,
+): Promise<OAuthTokenSet> {
+  const response = await runtime.fetch(tokenUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: params.toString(),
+  });
+  const errorCode = refresh ? "TOKEN_REFRESH_FAILED" : "TOKEN_EXCHANGE_FAILED";
+  await requireOk(
+    response,
+    provider,
+    errorCode,
+    refresh ? "Token refresh" : "Code exchange",
+  );
+  const data = await jsonRecord(response, provider, errorCode);
+  tokenError(data, provider, errorCode);
+  return tokenSetFromResponse(data, provider, runtime.nowMs(), errorCode);
+}

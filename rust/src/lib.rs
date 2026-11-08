@@ -12,6 +12,7 @@ mod lockout;
 mod mfa;
 mod one_time_credential;
 mod password;
+mod password_patterns;
 mod session;
 
 pub use audit::{
@@ -38,12 +39,14 @@ pub use one_time_credential::{
     OneTimeCredentialRejectionReason, evaluate_one_time_credential,
 };
 pub use password::{
-    BasicPasswordValidationResult, COMMON_PASSWORDS, DEFAULT_PASSWORD_CONFIG, KEYBOARD_PATTERNS,
-    PasswordConfig, PasswordFeedback, PasswordPenalties, PasswordScore, PasswordValidationResult,
-    StrengthResult, calculate_entropy, calculate_score, contains_user_input, estimate_crack_time,
-    estimate_password_strength, generate_feedback, get_charset_size, get_strength_label,
-    has_keyboard_pattern, has_repeated_chars, has_repeated_pattern, has_sequential_chars,
-    is_common_password, validate_password, validate_password_basic,
+    BasicPasswordValidationResult, DEFAULT_PASSWORD_CONFIG, PasswordConfig, PasswordFeedback,
+    PasswordPenalties, PasswordScore, PasswordValidationResult, StrengthResult, calculate_entropy,
+    calculate_score, estimate_crack_time, estimate_password_strength, generate_feedback,
+    get_charset_size, get_strength_label, validate_password, validate_password_basic,
+};
+pub use password_patterns::{
+    COMMON_PASSWORDS, KEYBOARD_PATTERNS, contains_user_input, has_keyboard_pattern,
+    has_repeated_chars, has_repeated_pattern, has_sequential_chars, is_common_password,
 };
 pub use session::{
     RefreshCredentialDecision, RefreshCredentialFacts, SessionBindingDecision,
